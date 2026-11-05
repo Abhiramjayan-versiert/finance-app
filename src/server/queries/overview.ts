@@ -7,6 +7,9 @@ import { budgetAppliesTo, computeBudgetUsage, spentForBudget } from "@/lib/finan
 import { generateInsights } from "@/lib/finance/insights";
 import { portfolioTotals } from "@/lib/finance/investments";
 import { getBudgets, getCategories, getNetWorth, getRecurring, getTransactions } from "./finance";
+import { safeToSpend, upcomingItems } from "@/lib/finance/upcoming";
+import { rollForwardDueDate } from "@/server/maintenance";
+import { isOpeningEntry } from "@/lib/finance/opening";
 
 /** Everything the Overview needs, computed from the user's actual records. */
 export const getOverview = cache(async (ws: Workspace) => {
@@ -70,9 +73,25 @@ export const getOverview = cache(async (ws: Workspace) => {
     emergencyFundMonths: emergencyMonths !== null && (emergencyBucket + emergencyGoal > 0 || nw.savings.accounts.some((a) => a.kind === "emergency")) ? emergencyMonths : null,
   });
 
+  // Upcoming bills & income (next 30 days) and what's safe to spend this month.
+  const debtsLite = nw.debts.map((d) => ({ id: d.id, name: d.name, emi_minor: d.emi_minor, outstandingMinor: d.outstandingMinor, payment_frequency: d.payment_frequency, nextDue: d.next_due_date ? rollForwardDueDate(d.next_due_date, d.payment_frequency, today) : null }));
+  const upcoming = upcomingItems(recurring, debtsLite, today, 30);
+  const billsThisMonth = upcoming.filter((u) => u.kind !== "recurring_income" && u.date <= month.to).reduce((s, u) => s + u.amountMinor, 0);
+  const plannedSavings = nw.goals
+    .filter((g) => !["paused", "cancelled", "completed"].includes(g.derivedStatus) && g.plan.remainingMinor > 0)
+    .reduce((s, g) => {
+      const done = g.savings_account_id
+        ? nw.savings.transactions.filter((t) => t.account_id === g.savings_account_id && t.occurred_on >= month.from && (t.type === "deposit" || t.type === "transfer_in") && !isOpeningEntry(t)).reduce((a, t) => a + t.amount_minor, 0)
+        : g.contributions.filter((c) => c.occurred_on >= month.from && c.amount_minor > 0 && !isOpeningEntry(c)).reduce((a, c) => a + c.amount_minor, 0);
+      return s + Math.max(0, g.plan.monthlyRequiredMinor - done);
+    }, 0);
+  const safe = safeToSpend({ today, monthEnd: month.to, cashMinor: nw.cash.cash_balance_minor, upcomingOutflowsMinor: billsThisMonth, plannedSavingsMinor: plannedSavings });
+
   return {
     today,
     month,
+    upcoming,
+    safe: { ...safe, billsThisMonthMinor: billsThisMonth, plannedSavingsMinor: plannedSavings },
     thisMonth,
     lastMonth,
     spendThis,

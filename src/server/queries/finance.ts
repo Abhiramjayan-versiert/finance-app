@@ -26,6 +26,7 @@ import { averageMonthlyContribution, computeGoalPlan, deriveGoalStatus, estimate
 import { computeNetWorth } from "@/lib/finance/networth";
 import { cashSummary, type MonthRollup } from "@/server/data/ledger";
 import { loadWorkspace } from "@/lib/auth";
+import { isOpeningEntry } from "@/lib/finance/opening";
 
 /**
  * Read models. The uid always comes from the verified session cookie, and every
@@ -166,12 +167,12 @@ export const getGoals = cache(async (today: string): Promise<GoalView[]> => {
     .map((g) => {
       const own = contributions.filter((c) => c.goal_id === g.id);
       const history = g.savings_account_id
-        ? savings.transactions.filter((t) => t.account_id === g.savings_account_id).map((t) => ({ amountMinor: t.type === "deposit" || t.type === "transfer_in" ? t.amount_minor : -t.amount_minor, date: t.occurred_on }))
-        : own.map((c) => ({ amountMinor: c.amount_minor, date: c.occurred_on }));
+        ? savings.transactions.filter((t) => t.account_id === g.savings_account_id && !isOpeningEntry(t)).map((t) => ({ amountMinor: t.type === "deposit" || t.type === "transfer_in" ? t.amount_minor : -t.amount_minor, date: t.occurred_on }))
+        : own.filter((c) => !isOpeningEntry(c)).map((c) => ({ amountMinor: c.amount_minor, date: c.occurred_on }));
       const savedMinor = g.savings_account_id ? bal.get(g.savings_account_id) ?? 0 : g.saved_minor ?? 0;
       const plan = computeGoalPlan({ targetMinor: g.target_amount_minor, savedMinor, today, targetDate: g.target_date });
       const monthlyPaceMinor = averageMonthlyContribution(history, today);
-      const derivedStatus = deriveGoalStatus({ storedStatus: g.status, targetMinor: g.target_amount_minor, savedMinor, today, targetDate: g.target_date, monthlyPaceMinor, hasContributions: history.length > 0, createdOn: g.created_at.slice(0, 10) });
+      const derivedStatus = deriveGoalStatus({ storedStatus: g.status, targetMinor: g.target_amount_minor, savedMinor, today, targetDate: g.target_date, monthlyPaceMinor, hasContributions: history.length > 0 || savedMinor > 0, createdOn: g.created_at.slice(0, 10) });
       return { ...g, savedMinor, contributions: own, plan, derivedStatus, monthlyPaceMinor, etaDate: estimateCompletionDate(plan.remainingMinor, monthlyPaceMinor, today) };
     });
 });

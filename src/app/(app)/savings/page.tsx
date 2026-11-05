@@ -6,6 +6,7 @@ import { totals } from "@/lib/finance/analytics";
 import { lastMonths, monthLabel, periodRange } from "@/lib/finance/dates";
 import { formatMoney, percent } from "@/lib/finance/money";
 import { PageHeader } from "@/components/shared/page-header";
+import { isOpeningEntry } from "@/lib/finance/opening";
 import { StatCard } from "@/components/shared/stat-card";
 import { EmptyState } from "@/components/shared/states";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,8 +25,8 @@ export default async function SavingsPage({ searchParams }: { searchParams: Prom
   const goalById = new Map(goals.map((g) => [g.id, g.name]));
   const goalAlloc = goals.filter((g) => !g.savings_account_id).reduce((s, g) => s + g.savedMinor, 0);
   const net = (from: string, to: string) =>
-    savings.transactions.filter((t) => (t.type === "deposit" || t.type === "withdrawal") && t.occurred_on >= from && t.occurred_on <= to).reduce((s, t) => s + (t.type === "deposit" ? t.amount_minor : -t.amount_minor), 0)
-    + goals.flatMap((g) => g.contributions).filter((c) => c.occurred_on >= from && c.occurred_on <= to).reduce((s, c) => s + c.amount_minor, 0);
+    savings.transactions.filter((t) => (t.type === "deposit" || t.type === "withdrawal") && !isOpeningEntry(t) && t.occurred_on >= from && t.occurred_on <= to).reduce((s, t) => s + (t.type === "deposit" ? t.amount_minor : -t.amount_minor), 0)
+    + goals.flatMap((g) => g.contributions).filter((c) => !isOpeningEntry(c) && c.occurred_on >= from && c.occurred_on <= to).reduce((s, c) => s + c.amount_minor, 0);
   const monthNet = net(month.from, month.to);
   const income = totals(txs, month).incomeMinor;
   const accounts = savings.accounts.map((a) => ({ ...a, linkedGoalName: a.linkedGoalId ? goalById.get(a.linkedGoalId) ?? null : null }));

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowRight, CreditCard, Landmark, Lightbulb, PiggyBank, Receipt, Scale, TrendingUp, Wallet, Percent } from "lucide-react";
+import { ArrowRight, CalendarClock, CreditCard, Landmark, Lightbulb, PiggyBank, Receipt, Scale, TrendingUp, Wallet, Percent, ShieldCheck } from "lucide-react";
 import { requireWorkspace } from "@/lib/auth";
 import { formatMoney } from "@/lib/finance/money";
 import { changePct } from "@/lib/finance/analytics";
@@ -50,6 +50,60 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <StatCard label="Net worth" value={m(o.nw.netWorthMinor)} icon={Landmark} hint="Assets − liabilities" />
         <StatCard label="Savings rate" value={o.thisMonth.incomeMinor ? `${o.thisMonth.savingsRatePct}%` : "—"} icon={Percent} hint={o.thisMonth.incomeMinor ? "Of this month's income" : "Add income to calculate"} />
       </section>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+        <Card className={o.safe.shortfallMinor ? "border-warning/40" : "border-accent/30"}>
+          <CardHeader>
+            <div>
+              <CardTitle className="flex items-center gap-1.5"><ShieldCheck className="size-4 text-accent" /> Safe to spend</CardTitle>
+              <CardDescription>Rest of {monthLabel(o.today.slice(0, 7))} · {o.safe.daysLeft} day{o.safe.daysLeft === 1 ? "" : "s"} left</CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {o.safe.shortfallMinor ? (
+              <>
+                <p className="text-2xl font-semibold text-warning tabular">{m(0)}<span className="text-sm font-normal text-muted"> / day</span></p>
+                <p className="mt-1 text-xs text-warning">You&apos;re {m(o.safe.shortfallMinor)} short of covering this month&apos;s bills and goal savings.</p>
+              </>
+            ) : (
+              <>
+                <p className="text-2xl font-semibold text-accent tabular">{m(o.safe.perDayMinor)}<span className="text-sm font-normal text-muted"> / day</span></p>
+                <p className="mt-1 text-xs text-muted">{m(o.safe.totalMinor)} left for the month</p>
+              </>
+            )}
+            <dl className="mt-3 space-y-1 border-t border-border pt-3 text-xs">
+              <div className="flex justify-between"><dt className="text-muted">Available cash</dt><dd className="tabular">{m(o.nw.cash.cash_balance_minor)}</dd></div>
+              <div className="flex justify-between"><dt className="text-muted">− Bills & EMIs due this month</dt><dd className="tabular">{m(o.safe.billsThisMonthMinor)}</dd></div>
+              <div className="flex justify-between"><dt className="text-muted">− Goal savings still to set aside</dt><dd className="tabular">{m(o.safe.plannedSavingsMinor)}</dd></div>
+            </dl>
+            <p className="mt-2 text-[11px] text-muted">An estimate from your records and schedules.</p>
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <div>
+              <CardTitle className="flex items-center gap-1.5"><CalendarClock className="size-4 text-muted" /> Upcoming in the next 30 days</CardTitle>
+              <CardDescription>Recurring transactions and loan EMIs</CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" asChild><Link href="/transactions?view=recurring">Manage</Link></Button>
+          </CardHeader>
+          <CardContent>
+            {o.upcoming.length ? (
+              <ul className="divide-y divide-border">
+                {o.upcoming.slice(0, 7).map((u) => (
+                  <li key={u.key} className="flex items-center gap-3 py-2 text-sm">
+                    <span className="w-16 shrink-0 text-xs text-muted">{formatDisplayDate(u.date, "dd MMM")}</span>
+                    <Link href={u.link} className="min-w-0 flex-1 truncate hover:underline">{u.title}</Link>
+                    <span className={u.kind === "recurring_income" ? "font-medium text-success tabular" : "font-medium tabular"}>{u.kind === "recurring_income" ? "+" : "−"}{m(u.amountMinor)}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="py-6 text-center text-xs text-muted">Nothing scheduled. Mark rent, salary or subscriptions as recurring, or add an EMI with a due date, to see them here.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {!hasAnyData ? (
         <EmptyState className="mt-6" icon={Lightbulb} title="Your dashboard fills in as you go" description="Add your income and a few expenses, set a budget, or create a savings goal. Every number here is calculated from your own records — nothing is estimated or made up." />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreVertical, Paperclip, Pencil, Repeat, Trash2 } from "lucide-react";
+import { Copy, MoreVertical, Paperclip, Pencil, Repeat, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ export function TransactionList({ transactions, emptyTitle = "No transactions ye
   const ws = useWorkspace();
   const { run } = useAction();
   const [editing, setEditing] = useState<Transaction | null>(null);
+  const [copying, setCopying] = useState<Transaction | null>(null);
   const [deleting, setDeleting] = useState<Transaction | null>(null);
   const cats = new Map([...ws.expenseCategories, ...ws.incomeCategories].map((c) => [c.id, c]));
 
@@ -42,7 +43,7 @@ export function TransactionList({ transactions, emptyTitle = "No transactions ye
           const parent = cat?.parent_id ? cats.get(cat.parent_id) : undefined;
           return (
             <li key={t.id} className="flex items-center gap-3 py-2.5">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold" style={{ background: `${cat?.color ?? "#A0A6AD"}22`, color: cat?.color ?? "#A0A6AD" }} aria-hidden>
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold" style={{ background: `color-mix(in srgb, ${cat?.color ?? "#A0A6AD"} 18%, transparent)`, color: `color-mix(in srgb, ${cat?.color ?? "#A0A6AD"} 55%, var(--foreground))` }} aria-hidden>
                 {(cat?.name ?? t.title).slice(0, 2).toUpperCase()}
               </span>
               <div className="min-w-0 flex-1">
@@ -70,6 +71,7 @@ export function TransactionList({ transactions, emptyTitle = "No transactions ye
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem onSelect={() => setEditing(t)}><Pencil /> Edit</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setCopying(t)}><Copy /> Duplicate</DropdownMenuItem>
                   {t.receipt_path ? <DropdownMenuItem onSelect={() => openReceipt(t.receipt_path!)}><Paperclip /> View receipt</DropdownMenuItem> : null}
                   <DropdownMenuItem destructive onSelect={() => setDeleting(t)}><Trash2 /> Delete</DropdownMenuItem>
                 </DropdownMenuContent>
@@ -82,6 +84,13 @@ export function TransactionList({ transactions, emptyTitle = "No transactions ye
         {editing ? (
           <DialogContent title={`Edit ${editing.type}`}>
             <TransactionForm initial={editing} onDone={() => setEditing(null)} />
+          </DialogContent>
+        ) : null}
+      </Dialog>
+      <Dialog open={!!copying} onOpenChange={(o) => !o && setCopying(null)}>
+        {copying ? (
+          <DialogContent title={`Duplicate ${copying.type}`} description="A new entry with today's date — change anything before saving.">
+            <TransactionForm template={copying} onDone={() => setCopying(null)} />
           </DialogContent>
         ) : null}
       </Dialog>

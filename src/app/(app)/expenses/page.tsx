@@ -15,6 +15,7 @@ import { PeriodNav } from "@/components/transactions/period-nav";
 import { ExpenseCalendar } from "@/components/transactions/expense-calendar";
 import { AddTransactionButtons } from "@/components/transactions/add-buttons";
 import { monthlySeries } from "@/lib/finance/analytics";
+import { PAYMENT_METHOD_LABEL } from "@/lib/labels";
 
 export const metadata: Metadata = { title: "Expenses" };
 
@@ -65,7 +66,18 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
           <CardHeader><div><CardTitle>By category</CardTitle><CardDescription>Subcategories roll up to their parent</CardDescription></div></CardHeader>
           <CardContent><BarList items={cur.byCategory.map((c) => ({ key: c.id ?? "none", label: c.name, valueMinor: c.amountMinor }))} emptyLabel="No expenses in this period" /></CardContent>
         </Card>
-        <Card className="lg:col-span-2">
+        <Card>
+          <CardHeader><div><CardTitle>By payment method</CardTitle><CardDescription>{p.label}</CardDescription></div></CardHeader>
+          <CardContent>
+            <BarList
+              items={Object.entries(txs.filter((t) => t.occurred_on >= p.range.from && t.occurred_on <= p.range.to).reduce<Record<string, number>>((acc, t) => ({ ...acc, [t.payment_method]: (acc[t.payment_method] ?? 0) + t.amount_minor }), {}))
+                .sort((a, b) => b[1] - a[1])
+                .map(([k, v]) => ({ key: k, label: PAYMENT_METHOD_LABEL[k as keyof typeof PAYMENT_METHOD_LABEL] ?? k, valueMinor: v }))}
+              emptyLabel="No expenses in this period"
+            />
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-3">
           <CardHeader><div><CardTitle>{day ? `Expenses on ${formatDisplayDate(day)}` : "Expenses"}</CardTitle><CardDescription>{listed.length} entries · {m(listed.reduce((s, t) => s + t.amount_minor, 0))}</CardDescription></div></CardHeader>
           <CardContent><TransactionList transactions={listed.slice(0, 200)} emptyTitle={day ? "Nothing spent on this day" : "No expenses in this period"} /></CardContent>
         </Card>

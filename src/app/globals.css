@@ -99,6 +99,22 @@
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
+  /* Native dropdown lists are drawn by the OS; give options explicit colours
+     so they never render light-on-light or dark-on-dark (Windows Chrome/Brave/Edge). */
+  select {
+    color-scheme: light;
+  }
+  .dark select {
+    color-scheme: dark;
+  }
+  select option,
+  select optgroup {
+    background-color: var(--background-2);
+    color: var(--foreground);
+  }
+  select option:disabled {
+    color: var(--muted);
+  }
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;

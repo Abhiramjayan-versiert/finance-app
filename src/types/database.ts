@@ -139,6 +139,8 @@ export interface SavingsTransaction {
   transfer_group: UUID | null;
   occurred_on: ISODate;
   note: string | null;
+  /** Money that existed before tracking began (not a new contribution). */
+  is_opening?: boolean;
   created_at: Timestamp;
 }
 
@@ -167,6 +169,7 @@ export interface GoalContribution {
   affects_cash: boolean;
   occurred_on: ISODate;
   note: string | null;
+  is_opening?: boolean;
   created_at: Timestamp;
 }
 

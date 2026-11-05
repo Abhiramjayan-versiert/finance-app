@@ -18,17 +18,19 @@ import type { Transaction } from "@/types/database";
 const MAX_RECEIPT = 8 * 1024 * 1024; // photos are compressed before upload
 const RECEIPT_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 
-export function TransactionForm({ initial, defaultType = "expense", onDone }: { initial?: Transaction; defaultType?: "income" | "expense"; onDone?: () => void }) {
+export function TransactionForm({ initial, template, defaultType = "expense", onDone }: { initial?: Transaction; template?: Transaction; defaultType?: "income" | "expense"; onDone?: () => void }) {
+  // `template` pre-fills a new entry (e.g. "Duplicate"), `initial` edits an existing one.
+  const src = initial ?? template;
   const ws = useWorkspace();
   const router = useRouter();
-  const [type, setType] = useState<"income" | "expense">(initial?.type ?? defaultType);
+  const [type, setType] = useState<"income" | "expense">(src?.type ?? defaultType);
   const [recurring, setRecurring] = useState(false);
   const [receiptPath, setReceiptPath] = useState<string | null>(initial?.receipt_path ?? null);
   const [uploading, setUploading] = useState(false);
   const [clientRef, setClientRef] = useState(() => crypto.randomUUID());
 
   const expenseParents = ws.expenseCategories.filter((c) => !c.parent_id && !c.archived);
-  const initialCat = initial?.expense_category_id ? ws.expenseCategories.find((c) => c.id === initial.expense_category_id) : undefined;
+  const initialCat = src?.expense_category_id ? ws.expenseCategories.find((c) => c.id === src.expense_category_id) : undefined;
   const [parentId, setParentId] = useState<string>(initialCat?.parent_id ?? initialCat?.id ?? "");
   const subs = useMemo(() => ws.expenseCategories.filter((c) => c.parent_id === parentId && !c.archived), [ws.expenseCategories, parentId]);
 
@@ -87,8 +89,8 @@ export function TransactionForm({ initial, defaultType = "expense", onDone }: { 
       ) : null}
 
       <FormRow>
-        <TextField label={type === "income" ? "Income title" : "Expense name"} name="title" defaultValue={initial?.title} required maxLength={120} placeholder={type === "income" ? "e.g. November salary" : "e.g. Groceries at DMart"} />
-        <MoneyField label="Amount" name="amount" currencySymbol={ws.currencySymbol} defaultValue={initial ? fromMinor(initial.amount_minor, ws.currency) : ""} required />
+        <TextField label={type === "income" ? "Income title" : "Expense name"} name="title" defaultValue={src?.title} required maxLength={120} placeholder={type === "income" ? "e.g. November salary" : "e.g. Groceries at DMart"} />
+        <MoneyField label="Amount" name="amount" currencySymbol={ws.currencySymbol} defaultValue={src ? fromMinor(src.amount_minor, ws.currency) : ""} required />
       </FormRow>
 
       {type === "expense" ? (
@@ -108,13 +110,13 @@ export function TransactionForm({ initial, defaultType = "expense", onDone }: { 
         </FormRow>
       ) : (
         <FormRow>
-          <SelectField label="Income category" name="categoryId" defaultValue={initial?.income_category_id ?? ""}>
+          <SelectField label="Income category" name="categoryId" defaultValue={src?.income_category_id ?? ""}>
             <option value="">Uncategorised</option>
             {ws.incomeCategories.filter((c) => !c.archived).map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </SelectField>
-          <SelectField label="Status" name="status" defaultValue={initial?.status ?? "completed"} hint="Expected income is never counted as cash received.">
+          <SelectField label="Status" name="status" defaultValue={src?.status ?? "completed"} hint="Expected income is never counted as cash received.">
             <option value="completed">Received</option>
             <option value="expected">Expected (future)</option>
           </SelectField>
@@ -123,15 +125,15 @@ export function TransactionForm({ initial, defaultType = "expense", onDone }: { 
 
       <FormRow>
         <TextField label={recurring ? "Start date" : type === "income" ? "Date received" : "Date"} name="occurredOn" type="date" defaultValue={initial?.occurred_on ?? ws.today} required />
-        <SelectField label="Payment method" name="paymentMethod" defaultValue={initial?.payment_method ?? ws.defaultPaymentMethod}>
+        <SelectField label="Payment method" name="paymentMethod" defaultValue={src?.payment_method ?? ws.defaultPaymentMethod}>
           {PAYMENT_METHODS.map((p) => (
             <option key={p.value} value={p.value}>{p.label}</option>
           ))}
         </SelectField>
       </FormRow>
 
-      {type === "expense" ? <TextField label="Merchant" name="merchant" defaultValue={initial?.merchant ?? ""} maxLength={120} placeholder="Optional" /> : <TextField label="Source" name="source" defaultValue={initial?.source ?? ""} maxLength={120} placeholder="e.g. Acme Corp (optional)" />}
-      <TextAreaField label={type === "expense" ? "Description" : "Notes"} name="notes" defaultValue={initial?.notes ?? ""} maxLength={1000} rows={2} />
+      {type === "expense" ? <TextField label="Merchant" name="merchant" defaultValue={src?.merchant ?? ""} maxLength={120} placeholder="Optional" /> : <TextField label="Source" name="source" defaultValue={src?.source ?? ""} maxLength={120} placeholder="e.g. Acme Corp (optional)" />}
+      <TextAreaField label={type === "expense" ? "Description" : "Notes"} name="notes" defaultValue={src?.notes ?? ""} maxLength={1000} rows={2} />
 
       {!initial ? (
         <>

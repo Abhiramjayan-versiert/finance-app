@@ -217,7 +217,7 @@ export async function createSavingsAccount(store: Store, uid: string, data: Reco
   const id = store.newId();
   await store.transaction(async (tx) => {
     tx.create(P.savingsAccount(uid, id), { ...data, user_id: uid, balance_minor: openingMinor > 0 ? openingMinor : 0, archived: false, created_at: now(), updated_at: now(), deleted_at: null });
-    if (openingMinor > 0) tx.create(P.savingsTx(uid, store.newId()), { user_id: uid, account_id: id, type: "deposit", amount_minor: openingMinor, affects_cash: false, transfer_group: null, occurred_on: now().slice(0, 10), note: "Opening balance", created_at: now() });
+    if (openingMinor > 0) tx.create(P.savingsTx(uid, store.newId()), { user_id: uid, account_id: id, type: "deposit", amount_minor: openingMinor, affects_cash: false, transfer_group: null, occurred_on: now().slice(0, 10), note: "Opening balance", is_opening: true, created_at: now() });
   });
   return id;
 }
@@ -314,7 +314,7 @@ export async function createGoal(store: Store, uid: string, data: Record<string,
     const totals = await new Totals(uid).load(tx);
     tx.create(P.goal(uid, id), { ...data, user_id: uid, saved_minor: initialMinor, status: initialMinor > 0 || data.savings_account_id ? "active" : "not_started", completed_at: null, created_at: now(), updated_at: now(), deleted_at: null });
     if (initialMinor > 0) {
-      tx.create(P.contribution(uid, store.newId()), { user_id: uid, goal_id: id, amount_minor: initialMinor, affects_cash: initialFromCash, occurred_on: now().slice(0, 10), note: "Opening balance", created_at: now() });
+      tx.create(P.contribution(uid, store.newId()), { user_id: uid, goal_id: id, amount_minor: initialMinor, affects_cash: initialFromCash, occurred_on: now().slice(0, 10), note: "Opening balance", is_opening: true, created_at: now() });
       if (initialFromCash) totals.cash("goals_net_minor", initialMinor);
     }
     totals.save(tx);

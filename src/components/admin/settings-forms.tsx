@@ -28,7 +28,7 @@ export function TemplateForm({ t }: { t: { id: string; key: string; title_templa
       <TextAreaField label="Body" name="body_template" defaultValue={t.body_template} rows={2} hint="Variables in {{double braces}} are filled in automatically." />
       <div className="flex items-center justify-between gap-3">
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="is_active" defaultChecked={t.is_active} className="accent-[var(--accent)]" /> Active</label>
-        <SubmitButton size="sm">Save</SubmitButton>
+        <SubmitButton size="sm" className="w-auto shrink-0">Save</SubmitButton>
       </div>
     </ActionForm>
   );
@@ -40,15 +40,15 @@ export function DefaultCategories({ items }: { items: Array<{ id: string; kind: 
     <div>
       <ActionForm action={addDefaultCategoryAction as unknown as FormAction} resetOnSuccess className="mb-4 flex flex-wrap items-end gap-2 space-y-0">
         <NativeSelect name="kind" className="w-auto" aria-label="Kind"><option value="expense">Expense</option><option value="income">Income</option></NativeSelect>
-        <input name="name" placeholder="Category name" aria-label="Category name" className="h-10 flex-1 rounded-md border border-border bg-background-2 px-3 text-sm" required maxLength={60} />
+        <input name="name" placeholder="Category name" aria-label="Category name" className="h-10 min-w-0 flex-1 basis-40 rounded-md border border-border bg-background-2 px-3 text-sm" required maxLength={60} />
         <input name="color" type="color" defaultValue="#A0A6AD" aria-label="Colour" className="h-10 w-12 rounded-md border border-border bg-background-2" />
         <SubmitButton size="sm">Add</SubmitButton>
       </ActionForm>
       <ul className="grid gap-1 sm:grid-cols-2">
         {items.map((c) => (
-          <li key={c.id} className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-card-2">
+          <li key={c.id} className="flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-card-2">
             <span className="size-3 rounded-full" style={{ background: c.color }} />
-            <span className={c.is_active ? "flex-1" : "flex-1 text-muted line-through"}>{c.name}</span>
+            <span className={c.is_active ? "min-w-0 flex-1 truncate" : "min-w-0 flex-1 truncate text-muted line-through"}>{c.name}</span>
             <Badge>{c.kind}</Badge>
             <Button variant="ghost" size="sm" onClick={() => run(() => toggleDefaultCategoryAction(c.id, !c.is_active))}>{c.is_active ? "Disable" : "Enable"}</Button>
           </li>

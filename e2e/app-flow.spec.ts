@@ -213,6 +213,53 @@ test.describe("signed-in user", () => {
     expect(all.transactions.length).toBeGreaterThanOrEqual(2);
   });
 
+  test("dropdown options are readable in dark mode", async ({ page }) => {
+    await page.goto("/goals?new=1");
+    const style = await page.getByRole("dialog").getByLabel("Goal category").evaluate((s: HTMLSelectElement) => {
+      const o = getComputedStyle(s.options[0]);
+      return { color: o.color, bg: o.backgroundColor };
+    });
+    expect(style.color).not.toBe(style.bg);
+    expect(style.bg).not.toBe("rgba(0, 0, 0, 0)");
+  });
+
+  test("imports a bank statement CSV and skips duplicates on re-import", async ({ page }) => {
+    const csv = "Txn Date,Narration,Withdrawal Amt,Deposit Amt\n03/11/2026,UPI-ZOMATO,\"1,250.00\",\n04/11/2026,NEFT-REFUND,,300.50\n04/11/2026,UPI-CHAI,50.00,\n04/11/2026,UPI-CHAI,50.00,\n";
+    const upload = async () => {
+      await page.goto("/transactions/import");
+      await page.locator('input[type="file"]').setInputFiles({ name: "statement.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
+      await expect(page.getByText("4 rows ready")).toBeVisible();
+      await page.getByRole("button", { name: "Import 4 rows" }).click();
+    };
+    await upload();
+    await expect(page.getByText("4 imported · 0 already existed")).toBeVisible();
+    await upload();
+    await expect(page.getByText("0 imported · 4 already existed")).toBeVisible();
+    await page.goto("/transactions?q=UPI-CHAI");
+    await expect(page.getByText("UPI-CHAI")).toHaveCount(2);
+  });
+
+  test("duplicates a transaction", async ({ page }) => {
+    await page.goto("/transactions?q=Dinner");
+    await page.getByRole("button", { name: "Actions for Dinner" }).first().click();
+    await page.getByRole("menuitem", { name: "Duplicate" }).click();
+    const dlg = page.getByRole("dialog");
+    await expect(dlg.getByLabel("Expense name")).toHaveValue("Dinner");
+    await dlg.getByRole("button", { name: "Add expense" }).click();
+    await expect(dlg).toBeHidden();
+    await page.reload();
+    await expect(page.getByText("Dinner", { exact: true })).toHaveCount(2);
+  });
+
+  test("dashboard shows safe-to-spend and upcoming items", async ({ page }) => {
+    await page.goto("/dashboard");
+    await expect(page.getByText("Safe to spend")).toBeVisible();
+    await expect(page.getByText(/\/ day/)).toBeVisible();
+    await expect(page.getByText("Upcoming in the next 30 days")).toBeVisible();
+    // The test loan has no next-EMI date, so the list shows its empty state.
+    await expect(page.getByText(/Nothing scheduled|EMI|Salary|Rent/).first()).toBeVisible();
+  });
+
   test("mobile layout of the dashboard has no horizontal scroll", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/dashboard");

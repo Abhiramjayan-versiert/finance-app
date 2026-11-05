@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Download } from "lucide-react";
+import { Download, Upload } from "lucide-react";
 import { requireWorkspace } from "@/lib/auth";
 import { getRecurring, getTransactions } from "@/server/queries/finance";
 import { totals } from "@/lib/finance/analytics";
@@ -41,6 +41,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
         description="Every income and expense entry, searchable and filterable."
         actions={
           <>
+            <Button variant="secondary" size="sm" asChild><Link href="/transactions/import"><Upload /> Import</Link></Button>
             <Button variant="secondary" size="sm" asChild><a href={`/api/export?${exportQs}&format=csv`}><Download /> CSV</a></Button>
             <AddTransactionButtons />
           </>
