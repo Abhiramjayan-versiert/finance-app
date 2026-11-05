@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { Logo } from "@/components/shared/logo";
+import { redirect } from "next/navigation";
+import { getSessionUser } from "@/lib/auth";
+import { isBackendConfigured } from "@/lib/env";
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  // Already signed in and verified? Skip the auth screens.
+  if (isBackendConfigured()) {
+    const u = await getSessionUser();
+    if (u?.emailVerified) redirect("/dashboard");
+  }
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <header className="flex h-16 items-center px-4 sm:px-8">

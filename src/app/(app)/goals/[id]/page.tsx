@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { requireWorkspace } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { fileUrl } from "@/lib/files/url";
 import { getGoals, getSavings } from "@/server/queries/finance";
 import { GOAL_STATUS_LABEL, scenarioMonthlyRequired } from "@/lib/finance/goals";
 import { formatMoney } from "@/lib/finance/money";
@@ -27,11 +27,7 @@ export default async function GoalDetailPage({ params }: { params: Promise<{ id:
   const m = (v: number) => formatMoney(v, ws.settings.currency, { locale: ws.settings.locale });
   const accounts = savings.accounts.map((a) => ({ id: a.id, name: a.name, balanceMinor: a.balanceMinor, linked: !!a.linkedGoalId }));
   const linkedAccount = savings.accounts.find((a) => a.id === g.savings_account_id);
-  let imageUrl: string | null = null;
-  if (g.image_path) {
-    const supabase = await createClient();
-    imageUrl = (await supabase.storage.from("goal-images").createSignedUrl(g.image_path, 3600)).data?.signedUrl ?? null;
-  }
+  const imageUrl = g.image_path ? fileUrl(g.image_path) : null;
   const input = { targetMinor: g.target_amount_minor, savedMinor: g.savedMinor, today: ws.today, targetDate: g.target_date };
   const scenarios = [-6, -3, 0, 3, 6, 12].map((d) => ({ delta: d, ...scenarioMonthlyRequired(input, d) }));
 

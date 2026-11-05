@@ -1,7 +1,5 @@
 import type { NextConfig } from "next";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const supabaseHost = supabaseUrl ? new URL(supabaseUrl).host : "";
 const isDev = process.env.NODE_ENV !== "production";
 
 const csp = [
@@ -9,9 +7,10 @@ const csp = [
   // Next.js injects inline bootstrap scripts; 'unsafe-eval' only in development.
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob:${supabaseHost ? ` https://${supabaseHost}` : ""}`,
+  "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  `connect-src 'self'${supabaseHost ? ` https://${supabaseHost} wss://${supabaseHost}` : ""}`,
+  // All data flows through our own server; the browser never talks to Firebase directly.
+  "connect-src 'self'",
   "worker-src 'self'",
   "manifest-src 'self'",
   "frame-ancestors 'none'",

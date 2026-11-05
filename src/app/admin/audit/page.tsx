@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { getStore } from "@/lib/firebase/admin";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TD, TH, THead, TR } from "@/components/ui/table";
@@ -12,8 +12,9 @@ export default async function AdminAudit({ searchParams }: { searchParams: Promi
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
   const size = 50;
-  const supabase = await createClient();
-  const { data, count } = await supabase.from("audit_logs").select("*", { count: "exact" }).order("created_at", { ascending: false }).range((page - 1) * size, page * size - 1);
+  const store = getStore();
+  const [all, count] = await Promise.all([store.list<{ created_at: string; actor_email: string | null; action: string; target_type: string | null; target_id: string | null; metadata: Record<string, unknown>; ip_address: string | null }>("audit_logs", { orderBy: ["created_at", "desc"], limit: page * size }), store.count("audit_logs")]);
+  const data = all.slice((page - 1) * size);
   return (
     <>
       <PageHeader title="Audit logs" description="Append-only record of privileged actions." />

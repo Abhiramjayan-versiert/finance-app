@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Download } from "lucide-react";
 import { requireWorkspace } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { fileUrl } from "@/lib/files/url";
 import { isEmailConfigured } from "@/lib/env.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,11 +23,7 @@ function Section({ id, title, description, children }: { id: string; title: stri
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ recovery?: string }> }) {
   const ws = await requireWorkspace();
   const sp = await searchParams;
-  let avatar: string | null = null;
-  if (ws.profile.avatar_url) {
-    const supabase = await createClient();
-    avatar = (await supabase.storage.from("avatars").createSignedUrl(ws.profile.avatar_url, 3600)).data?.signedUrl ?? null;
-  }
+  const avatar = ws.profile.avatar_url ? fileUrl(ws.profile.avatar_url) : null;
   const links = [["profile", "Profile"], ["preferences", "Preferences"], ["notifications", "Notifications"], ["categories", "Categories"], ["security", "Security"], ["data", "Your data"]];
   return (
     <>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Landmark, Scale, TrendingDown, TrendingUp } from "lucide-react";
 import { requireWorkspace } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { getStore } from "@/lib/firebase/admin";
 import { getNetWorth, getSnapshots } from "@/server/queries/finance";
 import { upsertSnapshot } from "@/server/maintenance";
 import { changePct } from "@/lib/finance/analytics";
@@ -17,11 +17,10 @@ export const metadata: Metadata = { title: "Net Worth" };
 
 export default async function NetWorthPage() {
   const ws = await requireWorkspace();
-  const supabase = await createClient();
   const nw = await getNetWorth(ws.today, ws.settings.net_worth_cash_source);
   // Keep this month's snapshot current so history reflects reality.
-  await upsertSnapshot(supabase, ws.userId, ws.today, nw);
-  const snaps = await getSnapshots(supabase, 24);
+  await upsertSnapshot(getStore(), ws.userId, ws.today, nw);
+  const snaps = await getSnapshots(24);
   const m = (v: number) => formatMoney(v, ws.settings.currency, { locale: ws.settings.locale });
   const thisMonth = `${ws.today.slice(0, 7)}-01`;
   const prev = [...snaps].reverse().find((s) => s.snapshot_month < thisMonth);

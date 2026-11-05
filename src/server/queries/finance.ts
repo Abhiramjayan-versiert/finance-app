@@ -1,7 +1,8 @@
 import "server-only";
 import { cache } from "react";
-import type { ServerSupabase } from "@/lib/supabase/server";
-import { createClient } from "@/lib/supabase/server";
+import { getStore } from "@/lib/firebase/admin";
+import { userPath } from "@/lib/firebase/store";
+import { getSessionUser } from "@/lib/auth";
 import type {
   Budget,
   CashSummary,
@@ -20,28 +21,42 @@ import type {
   SavingsTransaction,
   Transaction,
 } from "@/types/database";
-import { fetchAll } from "./util";
 import { summarizeHolding } from "@/lib/finance/investments";
 import { averageMonthlyContribution, computeGoalPlan, deriveGoalStatus, estimateCompletionDate, type GoalStatus } from "@/lib/finance/goals";
 import { computeNetWorth } from "@/lib/finance/networth";
+import { cashSummary, type MonthRollup } from "@/server/data/ledger";
+import { loadWorkspace } from "@/lib/auth";
 
-export const db = cache(async () => createClient());
+/**
+ * Read models. The uid always comes from the verified session cookie, and every
+ * path is rooted at users/{uid}, so these loaders can only ever return the
+ * caller's own documents.
+ */
+const uidOrThrow = cache(async () => {
+  const u = await getSessionUser();
+  if (!u) throw new Error("Not authenticated");
+  return u.uid;
+});
+
+async function col<T>(name: string, opts?: Parameters<ReturnType<typeof getStore>["list"]>[1]): Promise<T[]> {
+  const uid = await uidOrThrow();
+  return (await getStore().list(userPath(uid, name), opts)) as unknown as T[];
+}
+
+const notDeleted = <T extends { deleted_at?: string | null }>(rows: T[]) => rows.filter((r) => !r.deleted_at);
+const byCreated = <T extends { created_at?: string }>(rows: T[]) => [...rows].sort((a, b) => (a.created_at ?? "").localeCompare(b.created_at ?? ""));
 
 // ---------------------------------------------------------------------------
 // Categories
 // ---------------------------------------------------------------------------
 export const getCategories = cache(async () => {
-  const supabase = await db();
-  const [inc, exp] = await Promise.all([
-    supabase.from("income_categories").select("*").order("name"),
-    supabase.from("expense_categories").select("*").order("name"),
-  ]);
-  if (inc.error) throw new Error(inc.error.message);
-  if (exp.error) throw new Error(exp.error.message);
-  const expense = (exp.data ?? []) as Category[];
+  const [income, expense] = await Promise.all([col<Category>("income_categories"), col<Category>("expense_categories")]);
+  const sort = (a: Category, b: Category) => a.name.localeCompare(b.name);
+  income.sort(sort);
+  expense.sort(sort);
   const childrenOf = new Map<string, string[]>();
   for (const c of expense) if (c.parent_id) childrenOf.set(c.parent_id, [...(childrenOf.get(c.parent_id) ?? []), c.id]);
-  return { income: (inc.data ?? []) as Category[], expense, childrenOf };
+  return { income, expense, childrenOf };
 });
 
 // ---------------------------------------------------------------------------
@@ -57,56 +72,47 @@ export interface TxFilters {
   status?: "completed" | "expected";
 }
 
+/** Date-range query (single-field index), remaining filters applied in memory. */
 export async function getTransactions(f: TxFilters = {}, limit?: number): Promise<Transaction[]> {
-  const supabase = await db();
-  const build = (from: number, to: number) => {
-    let q = supabase.from("transactions").select("*").is("deleted_at", null).order("occurred_on", { ascending: false }).order("created_at", { ascending: false });
-    if (f.from) q = q.gte("occurred_on", f.from);
-    if (f.to) q = q.lte("occurred_on", f.to);
-    if (f.type) q = q.eq("type", f.type);
-    if (f.status) q = q.eq("status", f.status);
-    if (f.paymentMethod) q = q.eq("payment_method", f.paymentMethod);
-    if (f.categoryId) q = q.or(`expense_category_id.eq.${f.categoryId},income_category_id.eq.${f.categoryId}`);
-    if (f.search) {
-      const s = f.search.replace(/[%_,().*]/g, " ").trim().slice(0, 60);
-      if (s) q = q.or(`title.ilike.%${s}%,merchant.ilike.%${s}%,source.ilike.%${s}%,notes.ilike.%${s}%`);
-    }
-    return q.range(from, to);
-  };
-  if (limit) {
-    const { data, error } = await build(0, limit - 1);
-    if (error) throw new Error(error.message);
-    return (data ?? []) as Transaction[];
+  const where: Array<[string, ">=" | "<=", string]> = [];
+  if (f.from) where.push(["occurred_on", ">=", f.from]);
+  if (f.to) where.push(["occurred_on", "<=", f.to]);
+  let rows = notDeleted(await col<Transaction>("transactions", { where, orderBy: ["occurred_on", "desc"] }));
+  if (f.type) rows = rows.filter((t) => t.type === f.type);
+  if (f.status) rows = rows.filter((t) => t.status === f.status);
+  if (f.paymentMethod) rows = rows.filter((t) => t.payment_method === f.paymentMethod);
+  if (f.categoryId) {
+    const { childrenOf } = await getCategories();
+    const ids = new Set([f.categoryId, ...(childrenOf.get(f.categoryId) ?? [])]);
+    rows = rows.filter((t) => ids.has(t.expense_category_id ?? "") || ids.has(t.income_category_id ?? ""));
   }
-  return fetchAll<Transaction>(build as never);
+  if (f.search) {
+    const s = f.search.toLowerCase().trim();
+    if (s) rows = rows.filter((t) => [t.title, t.merchant, t.source, t.notes].some((v) => v?.toLowerCase().includes(s)));
+  }
+  rows.sort((a, b) => b.occurred_on.localeCompare(a.occurred_on) || (b.created_at ?? "").localeCompare(a.created_at ?? ""));
+  return limit ? rows.slice(0, limit) : rows;
 }
 
-export const getRecurring = cache(async (): Promise<RecurringTransaction[]> => {
-  const supabase = await db();
-  const { data, error } = await supabase.from("recurring_transactions").select("*").is("deleted_at", null).order("created_at", { ascending: false });
-  if (error) throw new Error(error.message);
-  return (data ?? []) as RecurringTransaction[];
+/** Monthly rollups (one small document per month). */
+export const getMonthRollups = cache(async (fromKey: string, toKey: string) => {
+  const rows = await col<MonthRollup & { id: string }>("months", { where: [["month", ">=", fromKey], ["month", "<=", toKey]] });
+  return new Map(rows.map((r) => [r.id, r]));
 });
 
+export const getRecurring = cache(async (): Promise<RecurringTransaction[]> => byCreated(notDeleted(await col<RecurringTransaction & { deleted_at?: string | null }>("recurring_transactions"))).reverse());
+
 export const getCashSummary = cache(async (): Promise<CashSummary> => {
-  const supabase = await db();
-  const { data, error } = await supabase.rpc("cash_summary");
-  if (error) throw new Error(error.message);
-  const row = (Array.isArray(data) ? data[0] : data) as CashSummary | undefined;
-  return (
-    row ?? { opening_balance_minor: 0, income_minor: 0, expense_minor: 0, savings_net_minor: 0, goals_net_minor: 0, investments_net_minor: 0, debt_payments_minor: 0, cash_balance_minor: 0 }
-  );
+  const uid = await uidOrThrow();
+  const u = await getSessionUser();
+  const ws = await loadWorkspace(uid, u?.email ?? "");
+  return cashSummary(getStore(), uid, ws?.settings.opening_balance_minor ?? 0);
 });
 
 // ---------------------------------------------------------------------------
 // Budgets
 // ---------------------------------------------------------------------------
-export const getBudgets = cache(async (): Promise<Budget[]> => {
-  const supabase = await db();
-  const { data, error } = await supabase.from("budgets").select("*").is("deleted_at", null).order("period").order("created_at");
-  if (error) throw new Error(error.message);
-  return (data ?? []) as Budget[];
-});
+export const getBudgets = cache(async (): Promise<Budget[]> => byCreated(notDeleted(await col<Budget & { deleted_at?: string | null }>("budgets"))));
 
 // ---------------------------------------------------------------------------
 // Savings
@@ -118,20 +124,17 @@ export interface SavingsAccountView extends SavingsAccount {
 }
 
 export const getSavings = cache(async (monthStart?: string) => {
-  const supabase = await db();
-  const [accounts, balances, txs, goals] = await Promise.all([
-    supabase.from("savings_accounts").select("*").is("deleted_at", null).order("created_at"),
-    supabase.from("savings_account_balances").select("*"),
-    fetchAll<SavingsTransaction>((a, b) => supabase.from("savings_transactions").select("*").order("occurred_on", { ascending: false }).order("created_at", { ascending: false }).range(a, b) as never),
-    supabase.from("financial_goals").select("id, savings_account_id").is("deleted_at", null).not("savings_account_id", "is", null),
+  const [accounts, txs, goals] = await Promise.all([
+    col<SavingsAccount & { balance_minor: number; deleted_at?: string | null }>("savings_accounts"),
+    col<SavingsTransaction>("savings_transactions"),
+    col<{ id: string; savings_account_id: string | null; deleted_at?: string | null }>("financial_goals"),
   ]);
-  if (accounts.error) throw new Error(accounts.error.message);
-  const bal = new Map((balances.data ?? []).map((b: { account_id: string; balance_minor: number }) => [b.account_id, Number(b.balance_minor)]));
-  const linked = new Map((goals.data ?? []).map((g: { id: string; savings_account_id: string }) => [g.savings_account_id, g.id]));
+  txs.sort((a, b) => b.occurred_on.localeCompare(a.occurred_on) || b.created_at.localeCompare(a.created_at));
+  const linked = new Map(notDeleted(goals).filter((g) => g.savings_account_id).map((g) => [g.savings_account_id!, g.id]));
   const ms = monthStart ?? "0000-00-00";
-  const list: SavingsAccountView[] = ((accounts.data ?? []) as SavingsAccount[]).map((a) => ({
+  const list: SavingsAccountView[] = byCreated(notDeleted(accounts)).map((a) => ({
     ...a,
-    balanceMinor: bal.get(a.id) ?? 0,
+    balanceMinor: a.balance_minor ?? 0,
     linkedGoalId: linked.get(a.id) ?? null,
     depositedThisMonthMinor: txs.filter((t) => t.account_id === a.id && t.occurred_on >= ms).reduce((s, t) => s + (t.type === "deposit" || t.type === "transfer_in" ? t.amount_minor : -t.amount_minor), 0),
   }));
@@ -151,38 +154,26 @@ export interface GoalView extends FinancialGoal {
 }
 
 export const getGoals = cache(async (today: string): Promise<GoalView[]> => {
-  const supabase = await db();
-  const [goals, progress, contributions, savings] = await Promise.all([
-    supabase.from("financial_goals").select("*").is("deleted_at", null).order("target_date"),
-    supabase.from("goal_progress").select("*"),
-    fetchAll<GoalContribution>((a, b) => supabase.from("goal_contributions").select("*").order("occurred_on", { ascending: false }).range(a, b) as never),
-    supabase.from("savings_transactions").select("account_id, type, amount_minor, occurred_on"),
+  const [goals, contributions, savings] = await Promise.all([
+    col<FinancialGoal & { saved_minor: number; deleted_at?: string | null }>("financial_goals"),
+    col<GoalContribution>("goal_contributions"),
+    getSavings(),
   ]);
-  if (goals.error) throw new Error(goals.error.message);
-  const saved = new Map((progress.data ?? []).map((p: { goal_id: string; saved_minor: number }) => [p.goal_id, Number(p.saved_minor)]));
-  return ((goals.data ?? []) as FinancialGoal[]).map((g) => {
-    const own = contributions.filter((c) => c.goal_id === g.id);
-    // Linked goals use the bucket's deposits as their contribution history.
-    const history = g.savings_account_id
-      ? (savings.data ?? [])
-          .filter((t: { account_id: string }) => t.account_id === g.savings_account_id)
-          .map((t: { type: string; amount_minor: number; occurred_on: string }) => ({ amountMinor: t.type === "deposit" || t.type === "transfer_in" ? t.amount_minor : -t.amount_minor, date: t.occurred_on }))
-      : own.map((c) => ({ amountMinor: c.amount_minor, date: c.occurred_on }));
-    const savedMinor = saved.get(g.id) ?? 0;
-    const plan = computeGoalPlan({ targetMinor: g.target_amount_minor, savedMinor, today, targetDate: g.target_date });
-    const monthlyPaceMinor = averageMonthlyContribution(history, today);
-    const derivedStatus = deriveGoalStatus({
-      storedStatus: g.status,
-      targetMinor: g.target_amount_minor,
-      savedMinor,
-      today,
-      targetDate: g.target_date,
-      monthlyPaceMinor,
-      hasContributions: history.length > 0,
-      createdOn: g.created_at.slice(0, 10),
+  contributions.sort((a, b) => b.occurred_on.localeCompare(a.occurred_on));
+  const bal = new Map(savings.accounts.map((a) => [a.id, a.balanceMinor]));
+  return notDeleted(goals)
+    .sort((a, b) => a.target_date.localeCompare(b.target_date))
+    .map((g) => {
+      const own = contributions.filter((c) => c.goal_id === g.id);
+      const history = g.savings_account_id
+        ? savings.transactions.filter((t) => t.account_id === g.savings_account_id).map((t) => ({ amountMinor: t.type === "deposit" || t.type === "transfer_in" ? t.amount_minor : -t.amount_minor, date: t.occurred_on }))
+        : own.map((c) => ({ amountMinor: c.amount_minor, date: c.occurred_on }));
+      const savedMinor = g.savings_account_id ? bal.get(g.savings_account_id) ?? 0 : g.saved_minor ?? 0;
+      const plan = computeGoalPlan({ targetMinor: g.target_amount_minor, savedMinor, today, targetDate: g.target_date });
+      const monthlyPaceMinor = averageMonthlyContribution(history, today);
+      const derivedStatus = deriveGoalStatus({ storedStatus: g.status, targetMinor: g.target_amount_minor, savedMinor, today, targetDate: g.target_date, monthlyPaceMinor, hasContributions: history.length > 0, createdOn: g.created_at.slice(0, 10) });
+      return { ...g, savedMinor, contributions: own, plan, derivedStatus, monthlyPaceMinor, etaDate: estimateCompletionDate(plan.remainingMinor, monthlyPaceMinor, today) };
     });
-    return { ...g, savedMinor, contributions: own, plan, derivedStatus, monthlyPaceMinor, etaDate: estimateCompletionDate(plan.remainingMinor, monthlyPaceMinor, today) };
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -198,13 +189,9 @@ export interface InvestmentView extends Investment {
 }
 
 export const getInvestments = cache(async (): Promise<InvestmentView[]> => {
-  const supabase = await db();
-  const [inv, txs] = await Promise.all([
-    supabase.from("investments").select("*").is("deleted_at", null).order("created_at"),
-    fetchAll<InvestmentTransaction>((a, b) => supabase.from("investment_transactions").select("*").order("occurred_on").order("created_at").range(a, b) as never),
-  ]);
-  if (inv.error) throw new Error(inv.error.message);
-  return ((inv.data ?? []) as Investment[]).map((i) => {
+  const [inv, txs] = await Promise.all([col<Investment & { deleted_at?: string | null }>("investments"), col<InvestmentTransaction>("investment_transactions")]);
+  txs.sort((a, b) => a.occurred_on.localeCompare(b.occurred_on) || a.created_at.localeCompare(b.created_at));
+  return byCreated(notDeleted(inv)).map((i) => {
     const own = txs.filter((t) => t.investment_id === i.id);
     const s = summarizeHolding(own, i.current_value_minor);
     return { ...i, txs: own, investedMinor: s.investedMinor, totalContributedMinor: s.totalContributedMinor, realizedGainMinor: s.realizedGainMinor, units: s.units, pnlMinor: i.current_value_minor - s.investedMinor };
@@ -222,37 +209,27 @@ export interface DebtView extends Debt {
 }
 
 export const getDebts = cache(async (): Promise<DebtView[]> => {
-  const supabase = await db();
-  const [debts, balances, payments] = await Promise.all([
-    supabase.from("debts").select("*").is("deleted_at", null).order("created_at"),
-    supabase.from("debt_balances").select("*"),
-    fetchAll<DebtPayment>((a, b) => supabase.from("debt_payments").select("*").order("paid_on", { ascending: false }).range(a, b) as never),
+  const [debts, payments] = await Promise.all([
+    col<Debt & { principal_paid_minor?: number; interest_paid_minor?: number; deleted_at?: string | null }>("debts"),
+    col<DebtPayment>("debt_payments"),
   ]);
-  if (debts.error) throw new Error(debts.error.message);
-  const bal = new Map((balances.data ?? []).map((b: { debt_id: string; outstanding_minor: number; principal_paid_minor: number; interest_paid_minor: number }) => [b.debt_id, b]));
-  return ((debts.data ?? []) as Debt[]).map((d) => {
-    const b = bal.get(d.id);
-    return {
-      ...d,
-      interest_rate: Number(d.interest_rate),
-      outstandingMinor: Number(b?.outstanding_minor ?? d.opening_outstanding_minor),
-      principalPaidMinor: Number(b?.principal_paid_minor ?? 0),
-      interestPaidMinor: Number(b?.interest_paid_minor ?? 0),
-      payments: payments.filter((p) => p.debt_id === d.id),
-    };
-  });
+  payments.sort((a, b) => b.paid_on.localeCompare(a.paid_on));
+  return byCreated(notDeleted(debts)).map((d) => ({
+    ...d,
+    interest_rate: Number(d.interest_rate),
+    outstandingMinor: d.opening_outstanding_minor - (d.principal_paid_minor ?? 0),
+    principalPaidMinor: d.principal_paid_minor ?? 0,
+    interestPaidMinor: d.interest_paid_minor ?? 0,
+    payments: payments.filter((p) => p.debt_id === d.id),
+  }));
 });
 
 // ---------------------------------------------------------------------------
 // Net worth
 // ---------------------------------------------------------------------------
 export const getManualBalances = cache(async () => {
-  const supabase = await db();
-  const [a, l] = await Promise.all([
-    supabase.from("assets").select("*").is("deleted_at", null).order("value_minor", { ascending: false }),
-    supabase.from("liabilities").select("*").is("deleted_at", null).order("amount_minor", { ascending: false }),
-  ]);
-  return { assets: (a.data ?? []) as ManualAsset[], liabilities: (l.data ?? []) as ManualLiability[] };
+  const [a, l] = await Promise.all([col<ManualAsset & { deleted_at?: string | null }>("assets"), col<ManualLiability & { deleted_at?: string | null }>("liabilities")]);
+  return { assets: notDeleted(a).sort((x, y) => y.value_minor - x.value_minor), liabilities: notDeleted(l).sort((x, y) => y.amount_minor - x.amount_minor) };
 });
 
 export const getNetWorth = cache(async (today: string, cashSource: "tracked" | "manual") => {
@@ -271,7 +248,12 @@ export const getNetWorth = cache(async (today: string, cashSource: "tracked" | "
   return { ...result, cash, savings, goals, investments, debts, manual, goalAllocationsMinor: goalAllocations };
 });
 
-export async function getSnapshots(supabase: ServerSupabase, limit = 24): Promise<FinancialSnapshot[]> {
-  const { data } = await supabase.from("financial_snapshots").select("*").order("snapshot_month", { ascending: false }).limit(limit);
-  return ((data ?? []) as FinancialSnapshot[]).reverse();
+export async function getSnapshots(limit = 24): Promise<FinancialSnapshot[]> {
+  const rows = await col<FinancialSnapshot>("financial_snapshots", { orderBy: ["snapshot_month", "desc"], limit });
+  return rows.reverse();
+}
+
+export async function getUnreadCount(): Promise<number> {
+  const uid = await uidOrThrow();
+  return getStore().count(userPath(uid, "notifications"), [["read_at", "==", null]]);
 }

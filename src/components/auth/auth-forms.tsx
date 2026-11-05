@@ -6,7 +6,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { ActionForm, CheckboxField, SubmitButton, TextField, useFieldError, type FormAction } from "@/components/forms/action-form";
 import { Input, Label } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { forgotPasswordAction, loginAction, registerAction, resendOtpAction, resetPasswordAction, verifyOtpAction } from "@/server/actions/auth";
+import { confirmLinkVerifiedAction, forgotPasswordAction, loginAction, registerAction, resendOtpAction, resetPasswordAction, verifyOtpAction } from "@/server/actions/auth";
 
 function PasswordField({ name, label, autoComplete, hint }: { name: string; label: string; autoComplete: string; hint?: string }) {
   const [show, setShow] = useState(false);
@@ -65,7 +65,21 @@ function TermsField() {
   );
 }
 
-export function VerifyForm({ email }: { email: string }) {
+export function VerifyForm({ email, mode = "code" }: { email: string; mode?: "code" | "link" }) {
+  if (mode === "link") {
+    return (
+      <div className="space-y-5">
+        <ActionForm action={confirmLinkVerifiedAction as unknown as FormAction}>
+          <p className="text-sm text-muted">Open the email we sent and click the verification link. Then come back and continue.</p>
+          <SubmitButton className="w-full sm:w-full" pendingLabel="Checking…">I&apos;ve verified my email — continue</SubmitButton>
+        </ActionForm>
+        <ActionForm action={resendOtpAction as FormAction} className="space-y-0">
+          <input type="hidden" name="email" value={email} />
+          <p className="text-center text-xs text-muted">No email? Check spam, or <ResendButton disabled={!email} label="resend the link" /></p>
+        </ActionForm>
+      </div>
+    );
+  }
   return (
     <div className="space-y-5">
       <ActionForm action={verifyOtpAction as FormAction}>
@@ -84,10 +98,10 @@ export function VerifyForm({ email }: { email: string }) {
   );
 }
 
-function ResendButton({ disabled }: { disabled?: boolean }) {
+function ResendButton({ disabled, label = "resend the code" }: { disabled?: boolean; label?: string }) {
   return (
     <Button type="submit" variant="link" size="sm" className="h-auto text-xs" disabled={disabled}>
-      resend the code
+      {label}
     </Button>
   );
 }

@@ -11,11 +11,11 @@ import { PAYMENT_METHODS, FREQUENCIES } from "@/lib/labels";
 import { fromMinor } from "@/lib/finance/money";
 import { saveTransactionAction } from "@/server/actions/transactions";
 import { enqueue } from "@/lib/offline/queue";
-import { createClient } from "@/lib/supabase/client";
+import { uploadPrivateFile } from "@/lib/files/upload";
 import { cn } from "@/lib/utils";
 import type { Transaction } from "@/types/database";
 
-const MAX_RECEIPT = 5 * 1024 * 1024;
+const MAX_RECEIPT = 8 * 1024 * 1024; // photos are compressed before upload
 const RECEIPT_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 
 export function TransactionForm({ initial, defaultType = "expense", onDone }: { initial?: Transaction; defaultType?: "income" | "expense"; onDone?: () => void }) {
@@ -34,14 +34,12 @@ export function TransactionForm({ initial, defaultType = "expense", onDone }: { 
 
   async function uploadReceipt(file: File) {
     if (!RECEIPT_TYPES.includes(file.type)) return toast.error("Receipts must be JPG, PNG, WEBP or PDF.");
-    if (file.size > MAX_RECEIPT) return toast.error("Receipts must be 5 MB or smaller.");
+    if (file.size > MAX_RECEIPT) return toast.error("That file is too large.");
     setUploading(true);
     try {
-      const ext = file.type === "application/pdf" ? "pdf" : file.type.split("/")[1];
-      const path = `${ws.userId}/${crypto.randomUUID()}.${ext}`;
-      const { error } = await createClient().storage.from("receipts").upload(path, file, { contentType: file.type, upsert: false });
-      if (error) throw error;
-      setReceiptPath(path);
+      const r = await uploadPrivateFile(file, "receipt");
+      if (!r.ok) return void toast.error(r.error);
+      setReceiptPath(r.path);
       toast.success("Receipt attached");
     } catch {
       toast.error("Upload failed. Check your connection and try again.");
@@ -167,7 +165,7 @@ export function TransactionForm({ initial, defaultType = "expense", onDone }: { 
               </label>
             </Button>
           )}
-          <span className="text-[11px] text-muted">Optional · JPG, PNG, WEBP or PDF up to 5 MB</span>
+          <span className="text-[11px] text-muted">Optional · photo or PDF (PDF up to 700 KB)</span>
         </div>
       ) : null}
 

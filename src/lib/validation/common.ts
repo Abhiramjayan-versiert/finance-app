@@ -13,7 +13,8 @@ export const isoDate = z
 
 export const optionalIsoDate = z.preprocess((v) => (v === "" || v == null ? null : v), isoDate.nullable());
 
-export const uuid = z.string().trim().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, "Invalid identifier");
+/** Document identifiers (Firestore auto-ids, UUIDs, composite keys). Name kept for compatibility. */
+export const uuid = z.string().trim().regex(/^[A-Za-z0-9_-]{1,80}$/, "Invalid identifier");
 export const optionalUuid = z.preprocess((v) => (v === "" || v == null || v === "none" ? null : v), uuid.nullable());
 
 export const optionalText = (max: number) =>

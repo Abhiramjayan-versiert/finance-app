@@ -14,7 +14,7 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export async function GET(req: NextRequest) {
   const user = await getSessionUser();
-  if (!user || !user.email_confirmed_at) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user || !user.emailVerified) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const ws = await requireWorkspace();
   if (!(await rateLimit("export", [ws.userId], 60, 300))) return NextResponse.json({ error: "Too many exports. Try again in a few minutes." }, { status: 429 });
 

@@ -1,6 +1,6 @@
 /* FINANCE OS service worker.
  * Privacy rule: only public, content-hashed static assets and the offline
- * page are cached. HTML pages, API responses, server actions and Supabase
+ * page are cached. HTML pages, API responses, server actions and database
  * requests are NEVER cached, so no financial data lands in a shared cache. */
 const VERSION = "fos-v1";
 const STATIC_CACHE = `${VERSION}-static`;

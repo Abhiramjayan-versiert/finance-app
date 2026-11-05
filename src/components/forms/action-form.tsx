@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useActionState, useEffect, useRef } from "react";
+import { startTransition, useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -52,7 +52,20 @@ export function ActionForm({
   const errors = state && !state.ok ? state.fieldErrors ?? {} : {};
   return (
     <ErrorsContext.Provider value={errors}>
-      <form ref={formRef} action={formAction} className={cn("space-y-4", className)} noValidate>
+      <form
+        ref={formRef}
+        action={formAction}
+        // Submit manually so React 19 doesn't auto-reset the fields — users keep
+        // what they typed when validation fails. (Progressive enhancement still
+        // works via `action` when JavaScript is unavailable.)
+        onSubmit={(e) => {
+          e.preventDefault();
+          const fd = new FormData(e.currentTarget, (e.nativeEvent as SubmitEvent).submitter);
+          startTransition(() => formAction(fd));
+        }}
+        className={cn("space-y-4", className)}
+        noValidate
+      >
         {children}
         {errors._form ? <p className="text-sm text-danger">{errors._form}</p> : null}
       </form>

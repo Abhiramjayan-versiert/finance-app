@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { isEmailConfigured, isServiceRoleConfigured, serverEnv } from "@/lib/env.server";
+import { adminAuth, getStore } from "@/lib/firebase/admin";
+import { isEmailConfigured, serverEnv } from "@/lib/env.server";
 import { publicEnv } from "@/lib/env";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,23 +20,15 @@ async function timed<T>(fn: () => PromiseLike<T>) {
 }
 
 export default async function AdminHealth() {
-  const supabase = await createClient();
-  const dbCheck = await timed(async () => {
-    const { error } = await supabase.from("platform_settings").select("key").limit(1);
-    if (error) throw new Error(error.message);
-  });
-  const authCheck = isServiceRoleConfigured()
-    ? await timed(async () => {
-        const { error } = await createAdminClient().auth.admin.listUsers({ page: 1, perPage: 1 });
-        if (error) throw new Error(error.message);
-      })
-    : { ok: false as const, ms: 0, error: "Service role key not configured" };
-  const { data: errors } = await supabase.from("app_errors").select("*").order("created_at", { ascending: false }).limit(50);
+  const store = getStore();
+  const dbCheck = await timed(() => store.get("platform/settings"));
+  const authCheck = await timed(() => adminAuth().listUsers(1));
+  const errors = await store.list<{ created_at: string; source: string; path: string | null; message: string }>("app_errors", { orderBy: ["created_at", "desc"], limit: 50 });
   const checks: Array<{ name: string; status: "ok" | "warn" | "fail"; detail: string }> = [
-    { name: "Database (PostgREST)", status: dbCheck.ok ? "ok" : "fail", detail: dbCheck.ok ? `Responded in ${dbCheck.ms} ms` : dbCheck.error },
-    { name: "Authentication (admin API)", status: authCheck.ok ? "ok" : "fail", detail: authCheck.ok ? `Responded in ${authCheck.ms} ms` : authCheck.error },
+    { name: "Database (Firestore)", status: dbCheck.ok ? "ok" : "fail", detail: dbCheck.ok ? `Responded in ${dbCheck.ms} ms` : dbCheck.error },
+    { name: "Authentication (Firebase Auth)", status: authCheck.ok ? "ok" : "fail", detail: authCheck.ok ? `Responded in ${authCheck.ms} ms` : authCheck.error },
     { name: "Site URL", status: publicEnv.siteUrl.startsWith("https://") ? "ok" : "warn", detail: publicEnv.siteUrl },
-    { name: "Email notifications (Resend)", status: isEmailConfigured() ? "ok" : "warn", detail: isEmailConfigured() ? "Configured" : "RESEND_API_KEY / EMAIL_FROM not set — in-app notifications only" },
+    { name: "Email (Resend)", status: isEmailConfigured() ? "ok" : "warn", detail: isEmailConfigured() ? "Configured — 6-digit codes & email notifications" : "Not set — Firebase verification/reset links are used; notification emails off" },
     { name: "Cron secret", status: serverEnv.cronSecret ? "ok" : "warn", detail: serverEnv.cronSecret ? "Configured" : "CRON_SECRET not set — scheduled jobs are disabled" },
   ];
   const Icon = { ok: CheckCircle2, warn: AlertTriangle, fail: XCircle };

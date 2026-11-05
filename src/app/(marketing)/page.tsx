@@ -50,12 +50,12 @@ export default function LandingPage() {
         <div className="grid gap-8 lg:grid-cols-2">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">Private by design</h2>
-            <p className="mt-3 text-muted">Your financial records are isolated with database row-level security — only you can read them. Not even platform administrators can browse your transactions.</p>
+            <p className="mt-3 text-muted">Your records live in your own private, server-guarded workspace — browsers can never query the database directly, and only you can read your data. Not even platform administrators can browse your transactions.</p>
           </div>
           <ul className="space-y-3 text-sm">
             {[
-              [ShieldCheck, "Row-level security on every financial table"],
-              [Lock, "Email verification with one-time codes and rate-limited sign-in"],
+              [ShieldCheck, "Database locked to the server; every query scoped to your verified account"],
+              [Lock, "Email verification and rate-limited sign-in"],
               [Landmark, "We never ask for bank passwords, OTPs or card numbers"],
               [Smartphone, "Installable app with an offline-friendly shell — sensitive data is never cached offline"],
             ].map(([Icon, text]) => {

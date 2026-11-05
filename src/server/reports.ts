@@ -8,7 +8,8 @@ import { budgetAppliesTo, computeBudgetUsage, spentForBudget } from "@/lib/finan
 import { ASSET_CLASS_LABEL, portfolioTotals } from "@/lib/finance/investments";
 import { GOAL_STATUS_LABEL } from "@/lib/finance/goals";
 import { PAYMENT_METHOD_LABEL, DEBT_KIND_LABEL, GOAL_CATEGORY_LABEL } from "@/lib/labels";
-import { createClient } from "@/lib/supabase/server";
+import { getStore } from "@/lib/firebase/admin";
+import { userPath } from "@/lib/firebase/store";
 import { getBudgets, getCategories, getDebts, getGoals, getInvestments, getNetWorth, getSavings, getSnapshots, getTransactions } from "./queries/finance";
 
 export const REPORT_TYPES = [
@@ -149,8 +150,7 @@ export async function buildReport(ws: Workspace, type: ReportType, range: DateRa
       };
     }
     case "net-worth": {
-      const supabase = await createClient();
-      const [nw, snaps] = await Promise.all([getNetWorth(ws.today, ws.settings.net_worth_cash_source), getSnapshots(supabase, 60)]);
+      const [nw, snaps] = await Promise.all([getNetWorth(ws.today, ws.settings.net_worth_cash_source), getSnapshots(60)]);
       const inRange = snaps.filter((s) => s.snapshot_month >= range.from.slice(0, 8) + "01" && s.snapshot_month <= range.to);
       return {
         title: "Net worth report",
@@ -174,15 +174,12 @@ export async function buildReport(ws: Workspace, type: ReportType, range: DateRa
   }
 }
 
-/** Complete personal data export (GDPR-style portability). */
+/** Complete personal data export (data portability). */
 export async function exportAllData(ws: Workspace) {
-  const supabase = await createClient();
-  const tables = ["profiles", "user_settings", "income_categories", "expense_categories", "transactions", "recurring_transactions", "budgets", "financial_goals", "goal_contributions", "savings_accounts", "savings_transactions", "investments", "investment_transactions", "debts", "debt_payments", "assets", "liabilities", "financial_snapshots", "notifications", "user_achievements"] as const;
-  const out: Record<string, unknown> = { exported_at: new Date().toISOString(), user_id: ws.userId, currency: ws.settings.currency, note: "Money columns ending in _minor are integer minor units (e.g. paise)." };
-  for (const t of tables) {
-    const col = t === "profiles" ? "id" : "user_id";
-    const { data } = await supabase.from(t).select("*").eq(col, ws.userId).limit(50000);
-    out[t] = data ?? [];
-  }
+  const store = getStore();
+  const cols = ["income_categories", "expense_categories", "transactions", "recurring_transactions", "budgets", "financial_goals", "goal_contributions", "savings_accounts", "savings_transactions", "investments", "investment_transactions", "debts", "debt_payments", "assets", "liabilities", "financial_snapshots", "notifications", "user_achievements"];
+  const profile = await store.get(userPath(ws.userId));
+  const out: Record<string, unknown> = { exported_at: new Date().toISOString(), user_id: ws.userId, currency: ws.settings.currency, note: "Money fields ending in _minor are integer minor units (e.g. paise).", profile };
+  for (const c of cols) out[c] = await store.list(userPath(ws.userId, c));
   return out;
 }

@@ -2,21 +2,24 @@
 
 import { revalidatePath } from "next/cache";
 import { actionWorkspace } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { getStore } from "@/lib/firebase/admin";
+import { userPath } from "@/lib/firebase/store";
 import { uuid } from "@/lib/validation/common";
-import { dbErrorMessage, fail, guarded, ok, type ActionResult } from "@/lib/security/actions";
+import { fail, guarded, ok, type ActionResult } from "@/lib/security/actions";
 
 export async function markNotificationsReadAction(id?: string): Promise<ActionResult> {
   return guarded(async () => {
     const ws = await actionWorkspace();
-    const supabase = await createClient();
-    let q = supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("user_id", ws.userId).is("read_at", null);
+    const store = getStore();
+    const now = new Date().toISOString();
     if (id) {
       if (!uuid.safeParse(id).success) return fail("Invalid notification");
-      q = q.eq("id", id);
+      const path = userPath(ws.userId, "notifications", id);
+      if (!(await store.get(path))) return fail("Notification not found");
+      await store.update(path, { read_at: now });
+    } else {
+      for (const n of await store.list(userPath(ws.userId, "notifications"), { where: [["read_at", "==", null]] })) await store.update(userPath(ws.userId, "notifications", n.id), { read_at: now });
     }
-    const { error } = await q;
-    if (error) return fail(dbErrorMessage(error));
     revalidatePath("/", "layout");
     return ok(id ? undefined : "All caught up");
   }, "markRead");
@@ -26,9 +29,7 @@ export async function deleteNotificationAction(id: string): Promise<ActionResult
   return guarded(async () => {
     const ws = await actionWorkspace();
     if (!uuid.safeParse(id).success) return fail("Invalid notification");
-    const supabase = await createClient();
-    const { error } = await supabase.from("notifications").delete().eq("id", id).eq("user_id", ws.userId);
-    if (error) return fail(dbErrorMessage(error));
+    await getStore().delete(userPath(ws.userId, "notifications", id));
     revalidatePath("/", "layout");
     return ok();
   }, "deleteNotification");

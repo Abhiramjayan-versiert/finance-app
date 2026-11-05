@@ -83,3 +83,19 @@ export function levelColor(level: BudgetLevel): "success" | "accent" | "warning"
       return "danger";
   }
 }
+
+export interface RollupLike {
+  expense_minor: number;
+  expense_by_category: Record<string, number>;
+}
+
+/** Spending for a budget from monthly rollups (months keyed "yyyy-MM", inclusive range). */
+export function spentFromRollups(b: Pick<BudgetLike, "expense_category_id">, rollups: Map<string, RollupLike>, fromKey: string, toKey: string, childrenOf: Map<string, string[]>): number {
+  let total = 0;
+  const ids = b.expense_category_id ? [b.expense_category_id, ...(childrenOf.get(b.expense_category_id) ?? [])] : null;
+  for (const [k, r] of rollups) {
+    if (k < fromKey || k > toKey) continue;
+    total += ids ? ids.reduce((s, id) => s + (r.expense_by_category[id] ?? 0), 0) : r.expense_minor;
+  }
+  return total;
+}

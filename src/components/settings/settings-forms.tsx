@@ -13,7 +13,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { CURRENCIES, fromMinor } from "@/lib/finance/money";
 import { PAYMENT_METHODS } from "@/lib/labels";
-import { createClient } from "@/lib/supabase/client";
+import { uploadPrivateFile } from "@/lib/files/upload";
 import { deleteAccountAction, updateNotificationPrefsAction, updatePreferencesAction, updateProfileAction } from "@/server/actions/settings";
 import { changePasswordAction } from "@/server/actions/auth";
 import { archiveCategoryAction, saveCategoryAction } from "@/server/actions/transactions";
@@ -23,15 +23,13 @@ const TIMEZONES = ["Asia/Kolkata", "Asia/Dubai", "Asia/Singapore", "Asia/Kathman
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 export function ProfileForm({ fullName, country, email, avatarUrl }: { fullName: string; country: string; email: string; avatarUrl: string | null }) {
-  const ws = useWorkspace();
   const [avatarPath, setAvatarPath] = useState<string>("");
   const [preview, setPreview] = useState<string | null>(avatarUrl);
   async function upload(file: File) {
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 2 * 1024 * 1024) return toast.error("Use a JPG, PNG or WEBP image up to 2 MB.");
-    const path = `${ws.userId}/avatar-${Date.now()}.${file.type.split("/")[1]}`;
-    const { error } = await createClient().storage.from("avatars").upload(path, file, { contentType: file.type, upsert: true });
-    if (error) return toast.error("Upload failed");
-    setAvatarPath(path);
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) return toast.error("Use a JPG, PNG or WEBP image.");
+    const r = await uploadPrivateFile(file, "avatar");
+    if (!r.ok) return toast.error(r.error);
+    setAvatarPath(r.path);
     setPreview(URL.createObjectURL(file));
     toast.success("Photo uploaded — save to apply");
   }
@@ -176,6 +174,7 @@ export function CategoryManager() {
 export function SecurityForms() {
   return (
     <ActionForm action={changePasswordAction as unknown as FormAction} resetOnSuccess>
+      <TextField label="Current password" name="currentPassword" type="password" autoComplete="current-password" />
       <FormRow>
         <TextField label="New password" name="password" type="password" autoComplete="new-password" hint="8+ characters, upper & lowercase and a number" />
         <TextField label="Confirm new password" name="confirmPassword" type="password" autoComplete="new-password" />

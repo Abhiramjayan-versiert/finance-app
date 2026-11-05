@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import * as Icons from "lucide-react";
 import { Flame, Lock } from "lucide-react";
 import { requireWorkspace } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { getStore } from "@/lib/firebase/admin";
+import { userPath } from "@/lib/firebase/store";
+import { ACHIEVEMENTS } from "@/server/data/defaults";
 import { awardAchievements, computeAchievementStats } from "@/server/maintenance";
 import { achievementProgress } from "@/lib/finance/achievements";
 import { currencyInfo, formatMoney } from "@/lib/finance/money";
@@ -23,17 +25,14 @@ const pascal = (s: string) => s.replace(/(^|-)(\w)/g, (_, __, c: string) => c.to
 
 export default async function AchievementsPage() {
   const ws = await requireWorkspace();
-  const supabase = await createClient();
+  const store = getStore();
   const factor = 10 ** currencyInfo(ws.settings.currency).exponent;
-  const stats = await computeAchievementStats(supabase, ws.userId, ws.today, factor);
-  await awardAchievements(supabase, ws.userId, stats, false);
-  const [{ data: all }, { data: mine }] = await Promise.all([
-    supabase.from("achievements").select("*").order("sort_order"),
-    supabase.from("user_achievements").select("achievement_id, awarded_at").eq("user_id", ws.userId).order("awarded_at", { ascending: false }),
-  ]);
-  const earned = new Map((mine ?? []).map((r: { achievement_id: string; awarded_at: string }) => [r.achievement_id, r.awarded_at]));
+  const stats = await computeAchievementStats(store, ws.userId, ws.today, factor);
+  await awardAchievements(store, ws.userId, stats, false);
+  const mine = await store.list<{ awarded_at: string }>(userPath(ws.userId, "user_achievements"));
+  const earned = new Map(mine.map((r) => [r.id, r.awarded_at]));
   const progress = achievementProgress(stats);
-  const list = (all ?? []) as Achievement[];
+  const list: Achievement[] = ACHIEVEMENTS.map((a, i) => ({ id: a.code, code: a.code, name: a.name, description: a.description, icon: a.icon, category: "general", sort_order: i }));
 
   // Monthly challenges computed from this month's data.
   const month = periodRange("month", ws.today);

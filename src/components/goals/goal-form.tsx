@@ -12,7 +12,7 @@ import { formatMoney, fromMinor, toMinor } from "@/lib/finance/money";
 import { addMonthsISO } from "@/lib/finance/dates";
 import { GOAL_CATEGORIES, PRIORITIES } from "@/lib/labels";
 import { saveGoalAction } from "@/server/actions/goals";
-import { createClient } from "@/lib/supabase/client";
+import { uploadPrivateFile } from "@/lib/files/upload";
 import type { FinancialGoal } from "@/types/database";
 
 function safeMinor(v: string, currency: string) {
@@ -39,13 +39,12 @@ export function GoalForm({ initial, savedMinor = 0, accounts, onDone }: { initia
   const m = (v: number) => formatMoney(v, ws.currency, { locale: ws.locale });
 
   async function upload(file: File) {
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) return toast.error("Use a JPG, PNG or WEBP image up to 5 MB.");
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) return toast.error("Use a JPG, PNG or WEBP image.");
     setUploading(true);
     try {
-      const path = `${ws.userId}/${crypto.randomUUID()}.${file.type.split("/")[1]}`;
-      const { error } = await createClient().storage.from("goal-images").upload(path, file, { contentType: file.type });
-      if (error) throw error;
-      setImagePath(path);
+      const r = await uploadPrivateFile(file, "goal");
+      if (!r.ok) return void toast.error(r.error);
+      setImagePath(r.path);
       toast.success("Image uploaded");
     } catch {
       toast.error("Upload failed");

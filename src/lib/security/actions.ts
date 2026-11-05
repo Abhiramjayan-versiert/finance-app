@@ -3,6 +3,7 @@ import { z } from "zod";
 import { fieldErrors, formDataToObject } from "@/lib/validation/common";
 import { AuthError } from "@/lib/auth";
 import { logServerError } from "./errors";
+import { AlreadyExistsError, LedgerError, NotFoundError } from "@/lib/firebase/store";
 
 export type ActionResult<T = undefined> =
   | { ok: true; message?: string; data?: T }
@@ -17,8 +18,11 @@ export function parseForm<S extends z.ZodTypeAny>(schema: S, fd: FormData): { ok
   return { ok: true, data: parsed.data };
 }
 
-/** Maps Postgres/PostgREST errors to safe user-facing messages. */
+/** Maps store/ledger errors to safe user-facing messages. */
 export function dbErrorMessage(err: { code?: string; message?: string } | null | undefined): string {
+  if (err instanceof LedgerError) return err.message;
+  if (err instanceof NotFoundError) return "Record not found.";
+  if (err instanceof AlreadyExistsError) return "This already exists (duplicate).";
   if (!err) return "Something went wrong";
   switch (err.code) {
     case "23505":
@@ -46,6 +50,8 @@ export async function guarded<T>(fn: () => Promise<ActionResult<T>>, context: st
     return await fn();
   } catch (e) {
     if (e instanceof AuthError) return fail(e.message);
+    if (e instanceof LedgerError) return fail(e.message);
+    if (e instanceof NotFoundError) return fail("Record not found.");
     // Let Next.js redirects / notFound propagate.
     if (e && typeof e === "object" && "digest" in e && typeof (e as { digest?: unknown }).digest === "string" && String((e as { digest: string }).digest).startsWith("NEXT_")) throw e;
     await logServerError(e, context);

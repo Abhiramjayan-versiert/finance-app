@@ -12,9 +12,9 @@ export default function Privacy() {
       <h2>Data we never collect</h2>
       <p>Bank or card credentials, OTPs, or access to your bank accounts. FINANCE OS does not connect to financial institutions.</p>
       <h2>Who can see your data</h2>
-      <p>Only you. Every financial table is protected by database row-level security tied to your account. Administrators can see account metadata (name, email, sign-up date, activity dates) for support and security, but not your financial records. Privileged administrative actions are recorded in an audit log.</p>
+      <p>Only you. Your records are stored under your own account path and are only ever read by the server for your verified session; direct database access from browsers is blocked by Firestore security rules. Administrators can see account metadata (name, email, sign-up date, activity dates) for support and security, but not your financial records. Privileged administrative actions are recorded in an audit log.</p>
       <h2>Processors</h2>
-      <p>Data is hosted with Supabase (database, authentication and file storage) and served via Vercel. If email notifications are enabled, an email provider (Resend) receives your email address and notification text.</p>
+      <p>Data is hosted with Google Firebase (Firestore database and Firebase Authentication) and served via Vercel. If email notifications are enabled, an email provider (Resend) receives your email address and notification text.</p>
       <h2>Offline storage</h2>
       <p>The installable app caches only the public application shell. Entries you create while offline are kept on your device until they sync, and are cleared when you sign out.</p>
       <h2>Your rights</h2>

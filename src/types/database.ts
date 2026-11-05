@@ -1,4 +1,4 @@
-/** Row types mirroring supabase/migrations. Money columns are integer minor units. */
+/** Firestore document shapes. Money fields are integer minor units. */
 
 export type UUID = string;
 export type ISODate = string;
