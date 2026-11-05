@@ -1,9 +1,33 @@
 import "server-only";
 
+/**
+ * Normalises FIREBASE_PRIVATE_KEY however it was pasted: the bare key, the key
+ * wrapped in quotes (with or without a trailing comma), with literal "\n"
+ * escapes, with spaces where line breaks were lost, or the entire
+ * service-account JSON file.
+ */
+export function normalizePrivateKey(raw: string): string {
+  let v = raw.trim();
+  if (v.startsWith("{")) {
+    try {
+      v = String((JSON.parse(v) as { private_key?: string }).private_key ?? "");
+    } catch {
+      const m = v.match(/"private_key"\s*:\s*"([^"]+)"/);
+      if (m) v = m[1];
+    }
+  }
+  v = v.trim().replace(/,$/, "").trim();
+  if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
+  v = v.replace(/\\r\\n|\\n/g, "\n").replace(/\r\n/g, "\n");
+  const m = v.match(/-----BEGIN ([A-Z ]*)PRIVATE KEY-----([\s\S]*?)-----END [A-Z ]*PRIVATE KEY-----/);
+  if (!m) return v;
+  const body = m[2].replace(/[^A-Za-z0-9+/=]/g, "");
+  const lines = body.match(/.{1,64}/g) ?? [];
+  return `-----BEGIN ${m[1]}PRIVATE KEY-----\n${lines.join("\n")}\n-----END ${m[1]}PRIVATE KEY-----\n`;
+}
+
 function privateKey() {
-  const raw = process.env.FIREBASE_PRIVATE_KEY ?? "";
-  // Vercel stores multi-line values fine, but many people paste the JSON-escaped form.
-  return raw.includes("\\n") ? raw.replace(/\\n/g, "\n") : raw;
+  return normalizePrivateKey(process.env.FIREBASE_PRIVATE_KEY ?? "");
 }
 
 export const serverEnv = {
