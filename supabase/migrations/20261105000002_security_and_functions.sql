@@ -772,7 +772,8 @@ revoke update on public.notifications from authenticated;
 grant update (read_at) on public.notifications to authenticated;
 
 -- Function execution grants.
-grant execute on function public.is_admin() to authenticated;
+-- anon needs is_admin() for the platform_settings policy (always false for anon).
+grant execute on function public.is_admin() to anon, authenticated;
 grant execute on function public.has_role(public.app_role) to authenticated;
 grant execute on function public.transfer_savings(uuid, uuid, bigint, date, text) to authenticated;
 grant execute on function public.create_financial_goal(text, text, bigint, date, public.priority_level, text, text, text, text, uuid, bigint, boolean) to authenticated;
