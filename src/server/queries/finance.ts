@@ -191,6 +191,7 @@ export const getGoals = cache(async (today: string): Promise<GoalView[]> => {
 export interface InvestmentView extends Investment {
   txs: InvestmentTransaction[];
   investedMinor: number;
+  totalContributedMinor: number;
   realizedGainMinor: number;
   units: number;
   pnlMinor: number;
@@ -206,7 +207,7 @@ export const getInvestments = cache(async (): Promise<InvestmentView[]> => {
   return ((inv.data ?? []) as Investment[]).map((i) => {
     const own = txs.filter((t) => t.investment_id === i.id);
     const s = summarizeHolding(own, i.current_value_minor);
-    return { ...i, txs: own, investedMinor: s.investedMinor, realizedGainMinor: s.realizedGainMinor, units: s.units, pnlMinor: i.current_value_minor - s.investedMinor };
+    return { ...i, txs: own, investedMinor: s.investedMinor, totalContributedMinor: s.totalContributedMinor, realizedGainMinor: s.realizedGainMinor, units: s.units, pnlMinor: i.current_value_minor - s.investedMinor };
   });
 });
 
