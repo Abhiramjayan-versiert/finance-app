@@ -230,10 +230,10 @@ create table public.transactions (
   foreign key (recurring_id, user_id) references public.recurring_transactions (id, user_id) on delete set null (recurring_id)
 );
 -- Idempotency: a recurring rule produces at most one transaction per occurrence.
-create unique index transactions_recurring_occurrence_uidx on public.transactions (recurring_id, occurrence_date)
-  where recurring_id is not null;
+-- (Full unique index: NULLs are distinct, so ordinary transactions never conflict.)
+create unique index transactions_recurring_occurrence_uidx on public.transactions (recurring_id, occurrence_date);
 -- Idempotency for client submissions (double-clicks, offline queue replays).
-create unique index transactions_client_ref_uidx on public.transactions (user_id, client_ref) where client_ref is not null;
+create unique index transactions_client_ref_uidx on public.transactions (user_id, client_ref);
 create index transactions_user_date_idx on public.transactions (user_id, occurred_on desc) where deleted_at is null;
 create index transactions_user_type_date_idx on public.transactions (user_id, type, occurred_on desc) where deleted_at is null;
 create index transactions_expense_category_idx on public.transactions (expense_category_id) where expense_category_id is not null;
@@ -548,7 +548,7 @@ create table public.notifications (
   emailed_at timestamptz,
   created_at timestamptz not null default now()
 );
-create unique index notifications_dedupe_uidx on public.notifications (user_id, dedupe_key) where dedupe_key is not null;
+create unique index notifications_dedupe_uidx on public.notifications (user_id, dedupe_key);
 create index notifications_user_idx on public.notifications (user_id, created_at desc);
 
 create table public.achievements (

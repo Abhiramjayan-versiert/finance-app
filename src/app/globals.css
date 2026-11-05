@@ -1,0 +1,137 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Light theme */
+:root {
+  --background: #F6F7F8;
+  --background-2: #FFFFFF;
+  --card: #FFFFFF;
+  --card-2: #F1F3F5;
+  --foreground: #0B0D0F;
+  --muted: #5B636B;
+  --border: #E3E6EA;
+  --border-strong: #CED3D9;
+  --accent: #5C8F00;          /* lime tuned for contrast on light backgrounds */
+  --accent-soft: #EEF8DA;
+  --accent-foreground: #FFFFFF;
+  --success: #1F9D63;
+  --warning: #B7791F;
+  --danger: #D64545;
+  --ring: #5C8F00;
+  /* Validated categorical slots (dataviz reference palette), fixed order */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --chart-grid: #E3E6EA;
+  color-scheme: light;
+}
+
+/* Dark theme (default) — palette from the FINANCE OS brief */
+.dark {
+  --background: #0B0D0F;
+  --background-2: #14171A;
+  --card: #1B1F23;
+  --card-2: #22272C;
+  --foreground: #FFFFFF;
+  --muted: #A0A6AD;
+  --border: #262B31;
+  --border-strong: #343A41;
+  --accent: #B7F34A;
+  --accent-soft: rgba(183, 243, 74, 0.12);
+  --accent-foreground: #0B0D0F;
+  --success: #39C982;
+  --warning: #F2B84B;
+  --danger: #F06B6B;
+  --ring: #B7F34A;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --chart-grid: #262B31;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-2: var(--background-2);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: var(--date-icon-filter, none);
+  }
+  .dark input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

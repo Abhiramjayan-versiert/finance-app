@@ -561,22 +561,25 @@ group by d.id, d.user_id, d.opening_outstanding_minor;
 -- Activity tracking (DAU/WAU/MAU) — writes only the caller's own row.
 -- ---------------------------------------------------------------------------
 create or replace function public.record_activity()
-returns void
+returns boolean
 language plpgsql
 security definer
 set search_path = ''
 as $$
 declare
   v_uid uuid := (select auth.uid());
+  v_rows int;
 begin
   if v_uid is null then
-    return;
+    return false;
   end if;
   insert into public.user_activity (user_id, activity_date)
   values (v_uid, (now() at time zone 'utc')::date)
   on conflict do nothing;
+  get diagnostics v_rows = row_count;
   update public.profiles set last_seen_at = now()
     where id = v_uid and (last_seen_at is null or last_seen_at < now() - interval '10 minutes');
+  return v_rows > 0;
 end;
 $$;
 
