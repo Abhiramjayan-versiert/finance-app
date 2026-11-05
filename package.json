@@ -2,7 +2,7 @@
   "name": "finance-os",
   "version": "1.0.0",
   "private": true,
-  "description": "FINANCE OS — Your Money. Your Goals. Your Future.",
+  "description": "FINANCE OS \u2014 Your Money. Your Goals. Your Future.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -53,5 +53,8 @@
     "tw-animate-css": "^1.4.0",
     "typescript": "5.9",
     "vitest": "^4.1.12"
+  },
+  "overrides": {
+    "jwks-rsa": "3.2.2"
   }
 }

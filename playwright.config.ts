@@ -18,7 +18,7 @@ export default defineConfig({
     ? undefined
     : {
         command: `npx next start -p ${PORT}`,
-        env: { FINANCE_OS_FAKE_BACKEND: "1", FAKE_DEBUG: process.env.FAKE_DEBUG ?? "", CRON_SECRET: "e2e-secret", NEXT_PUBLIC_SITE_URL: `http://127.0.0.1:${PORT}` },
+        env: { NODE_OPTIONS: "--no-experimental-require-module", FINANCE_OS_FAKE_BACKEND: "1", FAKE_DEBUG: process.env.FAKE_DEBUG ?? "", CRON_SECRET: "e2e-secret", NEXT_PUBLIC_SITE_URL: `http://127.0.0.1:${PORT}` },
         url: `http://127.0.0.1:${PORT}/offline`,
         reuseExistingServer: true,
         stdout: process.env.FAKE_DEBUG ? "pipe" : "ignore",
