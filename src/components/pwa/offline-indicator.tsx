@@ -63,12 +63,16 @@ export function OfflineIndicator() {
       setOnline(navigator.onLine);
       if (navigator.onLine) void sync();
     };
-    update();
-    void refreshCount();
+    // Defer the initial read so state isn't set synchronously inside the effect.
+    const t = setTimeout(() => {
+      update();
+      void refreshCount();
+    }, 0);
     window.addEventListener("online", update);
     window.addEventListener("offline", update);
     window.addEventListener("fos-queue-changed", refreshCount);
     return () => {
+      clearTimeout(t);
       window.removeEventListener("online", update);
       window.removeEventListener("offline", update);
       window.removeEventListener("fos-queue-changed", refreshCount);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { History, MoreVertical, Pencil, Plus, RefreshCw, ShoppingCart, Trash2, HandCoins } from "lucide-react";
 import { ActionForm, CheckboxField, FormRow, MoneyField, SelectField, SubmitButton, TextAreaField, TextField, type FormAction } from "@/components/forms/action-form";
 import { useWorkspace } from "@/components/providers/workspace";
@@ -67,12 +67,12 @@ export function NewInvestmentButton({ defaultOpen }: { defaultOpen?: boolean }) 
 
 function TxForm({ investmentId, type, onDone, currentValueMinor }: { investmentId: string; type: "buy" | "sell" | "valuation"; onDone: () => void; currentValueMinor: number }) {
   const ws = useWorkspace();
-  const ref = useRef(crypto.randomUUID());
+  const [clientRef] = useState(() => crypto.randomUUID());
   return (
     <ActionForm action={addInvestmentTxAction as unknown as FormAction} onSuccess={onDone}>
       <input type="hidden" name="investmentId" value={investmentId} />
       <input type="hidden" name="type" value={type} />
-      <input type="hidden" name="clientRef" value={ref.current} />
+      <input type="hidden" name="clientRef" value={clientRef} />
       <FormRow>
         <MoneyField label={type === "valuation" ? "Current total value" : type === "buy" ? "Amount invested" : "Amount received"} name="amount" currencySymbol={ws.currencySymbol} defaultValue={type === "valuation" ? fromMinor(currentValueMinor, ws.currency) : ""} required autoFocus />
         <TextField label="Date" name="occurredOn" type="date" defaultValue={ws.today} />

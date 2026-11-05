@@ -131,7 +131,7 @@ export function trackingStreak(activityDates: Iterable<ISODate>, today: ISODate)
     d.setUTCDate(d.getUTCDate() - offset);
     return d.toISOString().slice(0, 10);
   };
-  let start = set.has(today) ? 0 : set.has(day(1)) ? 1 : -1;
+  const start = set.has(today) ? 0 : set.has(day(1)) ? 1 : -1;
   if (start < 0) return 0;
   let streak = 0;
   while (set.has(day(start + streak))) streak++;

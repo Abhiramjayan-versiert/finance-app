@@ -268,6 +268,7 @@ export interface AppNotification {
   link: string | null;
   dedupe_key: string | null;
   read_at: Timestamp | null;
+  emailed_at: Timestamp | null;
   created_at: Timestamp;
 }
 

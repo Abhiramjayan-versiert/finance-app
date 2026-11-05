@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { ArrowLeftRight, Minus, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { ActionForm, CheckboxField, FormRow, MoneyField, SelectField, SubmitButton, TextField, type FormAction } from "@/components/forms/action-form";
 import { useWorkspace } from "@/components/providers/workspace";
@@ -54,12 +54,12 @@ function AccountForm({ initial, onDone }: { initial?: AccountLite; onDone: () =>
 
 function MovementForm({ accountId, type, onDone }: { accountId: string; type: "deposit" | "withdrawal"; onDone: () => void }) {
   const ws = useWorkspace();
-  const ref = useRef(crypto.randomUUID());
+  const [clientRef] = useState(() => crypto.randomUUID());
   return (
     <ActionForm action={savingsMovementAction as unknown as FormAction} onSuccess={onDone}>
       <input type="hidden" name="accountId" value={accountId} />
       <input type="hidden" name="type" value={type} />
-      <input type="hidden" name="clientRef" value={ref.current} />
+      <input type="hidden" name="clientRef" value={clientRef} />
       <FormRow>
         <MoneyField label="Amount" name="amount" currencySymbol={ws.currencySymbol} required autoFocus />
         <TextField label="Date" name="occurredOn" type="date" defaultValue={ws.today} />

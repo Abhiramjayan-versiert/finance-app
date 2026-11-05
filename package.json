@@ -36,6 +36,7 @@
     "radix-ui": "^1.8.1",
     "react": "19.2",
     "react-dom": "19.2",
+    "react-is": "19.2",
     "recharts": "^3.10.1",
     "server-only": "^0.0.1",
     "sonner": "^2.0.8",

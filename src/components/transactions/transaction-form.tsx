@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Paperclip, X } from "lucide-react";
@@ -25,7 +25,7 @@ export function TransactionForm({ initial, defaultType = "expense", onDone }: { 
   const [recurring, setRecurring] = useState(false);
   const [receiptPath, setReceiptPath] = useState<string | null>(initial?.receipt_path ?? null);
   const [uploading, setUploading] = useState(false);
-  const clientRef = useRef<string>(crypto.randomUUID());
+  const [clientRef, setClientRef] = useState(() => crypto.randomUUID());
 
   const expenseParents = ws.expenseCategories.filter((c) => !c.parent_id && !c.archived);
   const initialCat = initial?.expense_category_id ? ws.expenseCategories.find((c) => c.id === initial.expense_category_id) : undefined;
@@ -57,7 +57,7 @@ export function TransactionForm({ initial, defaultType = "expense", onDone }: { 
       fd.forEach((v, k) => {
         if (typeof v === "string" && !k.startsWith("$ACTION")) fields[k] = v;
       });
-      await enqueue({ clientRef: clientRef.current, userId: ws.userId, fields, queuedAt: Date.now() });
+      await enqueue({ clientRef, userId: ws.userId, fields, queuedAt: Date.now() });
       return { ok: true, message: "You're offline — saved on this device and will sync when you reconnect." };
     }
     return (saveTransactionAction as unknown as FormAction)(prev, fd);
@@ -65,7 +65,7 @@ export function TransactionForm({ initial, defaultType = "expense", onDone }: { 
 
   const onSuccess = (r: ClientActionResult) => {
     if (r.ok) {
-      clientRef.current = crypto.randomUUID();
+      setClientRef(crypto.randomUUID());
       router.refresh();
       onDone?.();
     }
@@ -74,7 +74,7 @@ export function TransactionForm({ initial, defaultType = "expense", onDone }: { 
   return (
     <ActionForm action={action} onSuccess={onSuccess}>
       {initial ? <input type="hidden" name="id" value={initial.id} /> : null}
-      <input type="hidden" name="clientRef" value={clientRef.current} />
+      <input type="hidden" name="clientRef" value={clientRef} />
       <input type="hidden" name="type" value={type} />
       {receiptPath ? <input type="hidden" name="receiptPath" value={receiptPath} /> : null}
 

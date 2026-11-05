@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Minus, Pause, Pencil, Play, Plus, Trash2, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ActionForm, CheckboxField, FormRow, MoneyField, SubmitButton, TextField, type FormAction } from "@/components/forms/action-form";
@@ -27,12 +27,12 @@ export function NewGoalButton({ accounts, defaultOpen }: { accounts: Array<{ id:
 
 function ContributionForm({ goalId, direction, onDone }: { goalId: string; direction: "add" | "withdraw"; onDone: () => void }) {
   const ws = useWorkspace();
-  const ref = useRef(crypto.randomUUID());
+  const [clientRef] = useState(() => crypto.randomUUID());
   return (
     <ActionForm action={contributeToGoalAction as unknown as FormAction} onSuccess={onDone}>
       <input type="hidden" name="goalId" value={goalId} />
       <input type="hidden" name="direction" value={direction} />
-      <input type="hidden" name="clientRef" value={ref.current} />
+      <input type="hidden" name="clientRef" value={clientRef} />
       <FormRow>
         <MoneyField label="Amount" name="amount" currencySymbol={ws.currencySymbol} required autoFocus />
         <TextField label="Date" name="occurredOn" type="date" defaultValue={ws.today} />

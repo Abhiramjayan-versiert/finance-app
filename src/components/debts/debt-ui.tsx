@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { MoreVertical, Pencil, Plus, Trash2, Wallet } from "lucide-react";
 import { ActionForm, CheckboxField, FormRow, MoneyField, SelectField, SubmitButton, TextAreaField, TextField, type FormAction } from "@/components/forms/action-form";
 import { useWorkspace } from "@/components/providers/workspace";
@@ -75,7 +75,7 @@ export function NewDebtButton({ defaultOpen }: { defaultOpen?: boolean }) {
 
 function PaymentForm({ debt, onDone }: { debt: DebtLite; onDone: () => void }) {
   const ws = useWorkspace();
-  const ref = useRef(crypto.randomUUID());
+  const [clientRef] = useState(() => crypto.randomUUID());
   const [amount, setAmount] = useState(debt.emi_minor ? fromMinor(Math.min(debt.emi_minor, debt.outstandingMinor + Math.round((debt.outstandingMinor * debt.interest_rate) / 1200)), ws.currency) : "");
   const [auto, setAuto] = useState(true);
   let preview: ReturnType<typeof splitPayment> | null = null;
@@ -86,7 +86,7 @@ function PaymentForm({ debt, onDone }: { debt: DebtLite; onDone: () => void }) {
   return (
     <ActionForm action={recordDebtPaymentAction as unknown as FormAction} onSuccess={onDone}>
       <input type="hidden" name="debtId" value={debt.id} />
-      <input type="hidden" name="clientRef" value={ref.current} />
+      <input type="hidden" name="clientRef" value={clientRef} />
       <FormRow>
         <MoneyField label="Payment amount" name="amount" currencySymbol={ws.currencySymbol} value={amount} onChange={(e) => setAmount(e.target.value)} required />
         <TextField label="Paid on" name="paidOn" type="date" defaultValue={ws.today} />
