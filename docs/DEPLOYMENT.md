@@ -1,116 +1,68 @@
-# Deployment guide
+# Deployment guide (Firebase + Vercel)
 
-Target: **Vercel** (frontend + server) and **Supabase** (Postgres, Auth, Storage).
+FINANCE OS is a standalone application: its own **Firebase project** (Auth + Firestore) and its own **Vercel project** (`finance-os` in the Versiert Solutions team, production URL `https://finance-os-versiert-solutions.vercel.app`).
 
-## 1. Create the Supabase project
+Everything runs on free tiers: Firebase **Spark** plan (no billing account needed) and Vercel.
 
-1. Sign in at <https://supabase.com/dashboard> → **New project**. Pick a region close to your users (e.g. `ap-south-1` Mumbai for India). Use a **dedicated project** for FINANCE OS — the migrations create tables such as `notifications`, `rate_limits` and `profiles` that may collide with other apps.
-2. Save the database password somewhere safe.
-3. From **Project Settings → API** copy the **Project URL**, the **anon / publishable key** and the **service_role / secret key**.
+## 1. Create the Firebase project (≈5 minutes)
 
-## 2. Apply the database migrations
+1. Open <https://console.firebase.google.com> → **Create a project** → name it `finance-os`. Google Analytics is optional (you can turn it off).
+2. **Build → Authentication → Get started → Sign-in method → Email/Password → Enable** (leave "Email link" off) → Save.
+3. **Build → Firestore Database → Create database** → choose **Production mode** and the location **asia-south1 (Mumbai)** (or the region closest to your users; it can't be changed later).
+4. Firestore → **Rules** tab: paste the contents of `firestore.rules` from this repo (deny all client access) → **Publish**. (Production mode already denies everything; this makes it explicit.)
+5. **Project settings (⚙) → General**: copy the **Web API key** → this is `FIREBASE_WEB_API_KEY`. (If it shows "No API key", click *Add app → Web* once to create it; you don't need the config snippet.)
+6. **Project settings → Service accounts → Generate new private key** → download the JSON file. Keep it secret; never commit it.
 
-Option A — Supabase CLI (recommended):
+## 2. Add environment variables in Vercel
 
-```bash
-npx supabase login
-npx supabase link --project-ref <your-project-ref>
-npx supabase db push          # applies supabase/migrations/*.sql in order
-```
+Vercel → project **finance-os** → **Settings → Environment Variables**. Add each for **Production** and **Preview** (mark them *Sensitive*):
 
-Option B — Dashboard: open **SQL Editor** and run each file in `supabase/migrations/` in filename order (`…0001_core_schema.sql` → `…0004_admin_functions.sql`).
+| Variable | Where it comes from |
+|---|---|
+| `FIREBASE_PROJECT_ID` | `project_id` in the JSON file |
+| `FIREBASE_CLIENT_EMAIL` | `client_email` in the JSON file |
+| `FIREBASE_PRIVATE_KEY` | `private_key` in the JSON file — paste the whole value including `-----BEGIN PRIVATE KEY-----`/`-----END PRIVATE KEY-----` (the `\n` escapes are fine) |
+| `FIREBASE_WEB_API_KEY` | step 1.5 |
+| `NEXT_PUBLIC_SITE_URL` | optional — defaults to the production URL; set it if you add a custom domain |
+| `CRON_SECRET` | already set |
+| `RESEND_API_KEY`, `EMAIL_FROM` | optional, see §3 |
 
-Migrations create all tables, RLS policies, functions, storage buckets (`receipts`, `avatars`, `goal-images` — private) and reference data (default categories, achievements, notification templates, platform settings). Afterwards, check **Database → Advisors** for warnings.
+Then **Deployments → latest → ⋯ → Redeploy**. Until the Firebase variables exist, protected pages show a "Finish configuring" screen; the landing page and public calculators already work.
 
-## 3. Configure email OTP
+## 3. Email verification modes
 
-FINANCE OS verifies emails with a **6-digit code**.
+- **Without Resend (default, free):** Firebase sends its own verification and password-reset **links**. After clicking the link, users press *I've verified my email — continue*.
+- **With Resend (6-digit codes):** create a free account at <https://resend.com>, verify a sending domain, create an API key, and set `RESEND_API_KEY` plus `EMAIL_FROM` (e.g. `FINANCE OS <no-reply@yourdomain.com>`). Sign-up and password reset then use 6-digit codes (10-minute expiry, 5 attempts, one-time) and notification emails are enabled.
 
-1. **Authentication → Sign In / Providers → Email**: enable *Email*, enable **Confirm email**, and set *Email OTP length* to 6 and *Email OTP expiration* to 900 seconds (15 min) or less.
-2. **Authentication → Email Templates**:
-   - *Confirm signup*: paste `supabase/templates/confirmation.html` (uses `{{ .Token }}`). Subject: `Your FINANCE OS verification code`.
-   - *Reset password*: paste `supabase/templates/recovery.html`.
-3. **Authentication → SMTP Settings**: configure a real SMTP provider for production. The built-in sender is limited to a few emails per hour and is meant for testing.
-4. **Authentication → Rate Limits**: keep email sending and verification limits conservative. The app also applies its own per-email and per-IP limits.
-5. **Authentication → Policies / Passwords**: minimum length 8, require lower+upper case and digits (matches the app's validation). Optionally enable leaked-password protection.
+Optionally customise Firebase's link emails under **Authentication → Templates** and add your domain under **Authentication → Settings → Authorized domains**.
 
-## 4. Configure authentication redirect URLs
+## 4. Create the first super admin
 
-**Authentication → URL Configuration**:
-
-- *Site URL*: `https://your-domain.com` (or the Vercel URL initially).
-- *Redirect URLs*: add
-  - `https://your-domain.com/auth/confirm`
-  - `https://*-your-team.vercel.app/auth/confirm` (preview deployments, optional)
-  - `http://localhost:3000/auth/confirm` (local development)
-
-## 5. Connect GitHub
-
-Push this repository to GitHub (already done if you are reading this from GitHub). CI in `.github/workflows/ci.yml` runs lint, typecheck, unit tests, database tests (Postgres service), build and Playwright on every push/PR.
-
-## 6. Import the project into Vercel
-
-1. <https://vercel.com/new> → **Import Git Repository** → select the repo.
-2. Framework preset: **Next.js** (auto-detected). Build command `next build`, output default. Node 20+.
-3. The repository's `.npmrc` sets `legacy-peer-deps=true` so installs succeed; nothing else to change.
-
-## 7. Add environment variables
-
-In **Project → Settings → Environment Variables** add (Production, and Preview if you use previews):
-
-| Variable | Value | Exposed to browser |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Project URL | yes |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon / publishable key | yes |
-| `NEXT_PUBLIC_SITE_URL` | `https://your-domain.com` (no trailing slash) | yes |
-| `SUPABASE_SERVICE_ROLE_KEY` | service_role / secret key | **no — server only** |
-| `CRON_SECRET` | `openssl rand -hex 32` | no |
-| `RESEND_API_KEY`, `EMAIL_FROM` | optional, for notification emails | no |
-
-Never add the service-role key with a `NEXT_PUBLIC_` prefix.
-
-## 8. Deploy
-
-Click **Deploy** (or push to `main`). `vercel.json` registers a daily cron (`30 2 * * *` UTC ≈ 08:00 IST) at `/api/cron/daily`; Vercel sends `Authorization: Bearer $CRON_SECRET` automatically. Verify with `GET /api/health` → `{"ok":true,"db":"ok"}`.
-
-## 9. Custom domain
-
-**Project → Settings → Domains → Add**, then create the DNS records Vercel shows (A/ALIAS for apex, CNAME for `www`). After it verifies, update `NEXT_PUBLIC_SITE_URL`, the Supabase *Site URL* and *Redirect URLs* to the new domain, and redeploy.
-
-## 10. Create the first super admin
-
-Admin access is never granted from the browser. After you register and verify your own account:
+Register and verify your own account in the app, then run locally with the same variables in `.env.local`:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co \
-SUPABASE_SERVICE_ROLE_KEY=<service-role-key> \
 npm run admin:grant -- you@example.com
 ```
 
-Or in the Supabase SQL editor:
+Or in the Firebase console: Firestore → `users` → your document → add `super_admin` to the `roles` array. Then open `/admin`.
 
-```sql
-insert into public.user_roles (user_id, role)
-select id, 'super_admin' from public.profiles where lower(email) = lower('you@example.com')
-on conflict do nothing;
-```
+## 5. Custom domain (optional)
 
-Then open `/admin`. Super admins can grant `admin`/`support` roles to others from **Admin → Users**.
+Vercel → **Settings → Domains → Add**, create the DNS records shown, then set `NEXT_PUBLIC_SITE_URL` to the new domain, add it to Firebase **Authorized domains**, and redeploy.
 
-## 11. Post-deployment verification checklist
+## 6. Cron
 
-- [ ] Register → receive a 6-digit code → verify → land on the dashboard.
-- [ ] Wrong / expired code shows an error; *resend* works and is rate limited.
-- [ ] Forgot password → code → new password works.
-- [ ] Add income, an expense with a receipt, a recurring expense; dashboard cards update.
-- [ ] Create a budget, a goal (with opening savings), a savings bucket and a transfer; cash balance is unchanged by the transfer.
-- [ ] Add an investment, a debt and a payment; net worth reflects each once.
-- [ ] Reports export CSV, Excel and PDF.
-- [ ] A second account cannot see the first account's data.
-- [ ] `/admin` loads for the super admin only; suspend/reactivate a test user.
-- [ ] Install the PWA from Chrome (desktop/Android: install icon / menu) and Safari on iOS (Share → *Add to Home Screen*).
-- [ ] Trigger the cron manually: `curl -H "Authorization: Bearer $CRON_SECRET" https://your-domain.com/api/cron/daily`.
+`vercel.json` schedules `/api/cron/daily` at 02:30 UTC (08:00 IST). It catches up recurring transactions, generates reminders and sends opt-in email digests. Manual run: `curl -H "Authorization: Bearer $CRON_SECRET" https://<domain>/api/cron/daily`.
 
-## Error monitoring
+## 7. Post-deployment checklist
 
-Server errors are written to `public.app_errors` (visible in **Admin → System health**) and to the Vercel function logs. For external monitoring, add Sentry (`@sentry/nextjs`) or Vercel Observability; `logServerError` in `src/lib/security/errors.ts` is the single hook to extend.
+- [ ] `GET /api/health` → `{"ok":true,"db":"ok"}`
+- [ ] Register → verify (link or code) → dashboard
+- [ ] Add income/expenses, a budget, a goal, savings + transfer, an investment, a debt payment
+- [ ] Export CSV / Excel / PDF from Reports
+- [ ] A second account sees none of the first account's data
+- [ ] `/admin` works for the super admin only
+- [ ] Install the PWA (Chrome install icon / Safari → Share → Add to Home Screen)
+
+## Free-tier capacity
+Firestore Spark allows 50k reads, 20k writes and 1 GiB storage per day/total. Dashboards read pre-aggregated monthly totals (~20 documents per load), so this comfortably supports hundreds of daily active users. Upgrade to Blaze (pay-as-you-go) if you outgrow it — no code changes needed.

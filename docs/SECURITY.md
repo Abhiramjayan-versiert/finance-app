@@ -1,58 +1,41 @@
 # Security
 
-## Threat model in one paragraph
-Financial records are highly confidential. The primary risks are cross-tenant data access, privilege escalation, credential abuse and data leakage through caches or logs. FINANCE OS defends in depth: the database enforces ownership regardless of what the application does, the server re-validates every input and permission, and the browser never holds privileged keys.
+## Architecture in one paragraph
+Browsers never talk to the database. Every read and write goes through the Next.js server using the Firebase Admin SDK, and every path is built from the uid in the **verified session cookie** (`users/{uid}/…`). Firestore security rules deny all client access, so there is no client-rule surface to misconfigure. Financial invariants (no overdrafts, capped withdrawals/repayments, cash-neutral transfers) are enforced inside Firestore transactions.
 
-## Data isolation (Row Level Security)
-- RLS is enabled on **every** table in `public`. All 18 user-owned financial tables share one policy set: `user_id = auth.uid()` for select/insert/update/delete.
-- Cross-row references use **composite foreign keys `(id, user_id)`**, so a user cannot attach their transaction to someone else's category, goal, savings account, investment or debt even with a guessed UUID.
-- Column privileges restrict what users may update: profiles (`full_name`, `avatar_url`, `country`, `onboarded_at` only — not `status`), notifications (`read_at` only), user_achievements (no updates).
-- `anon` has no access to any table except public platform flags.
-- Views (`savings_account_balances`, `goal_progress`, `debt_balances`) use `security_invoker = true`; RPCs that write data (`transfer_savings`, `create_financial_goal`, `create_investment`, `cash_summary`) are `SECURITY INVOKER`, so RLS still applies.
-- Verified by `tests/db/rls.test.ts` (isolation per table, insert/update spoofing, FK spoofing, role self-grant, suspended-status tampering, admin cannot read finances, concurrency).
+## Authentication & sessions
+- Firebase Authentication (email + password). Passwords are sent only server → Google (Identity Toolkit REST); the app never stores them.
+- Sessions are **httpOnly, SameSite=Lax, Secure** Firebase session cookies (5 days), verified on every request with `verifySessionCookie(cookie, checkRevoked = true)` — revoked, disabled or expired sessions are rejected.
+- Email verification is required before any financial page or action: 6-digit codes (HMAC-stored, 10-minute expiry, 5 attempts, single use) when Resend is configured, otherwise Firebase verification links.
+- Password change requires the current password and revokes all other sessions; password reset never reveals whether an email is registered.
+- Suspension disables the Firebase user and revokes refresh tokens, ending live sessions immediately (covered by E2E tests).
+- Account deletion requires typing `DELETE` + the password and removes every document under `users/{uid}` plus the auth user.
 
-## Administration & privacy
-- Roles live in `user_roles`, which clients cannot write. `is_admin()` / `has_role()` are `SECURITY DEFINER` with a fixed `search_path`.
-- **Admins cannot read financial records.** No RLS policy grants admins access to financial tables. The admin console uses `admin_platform_stats()` (aggregate counts) and `admin_list_users()` (account metadata only), both of which check `is_admin()` in the database.
-- Every admin page and action calls `requireAdmin()` on the server. Mutations (suspend, reactivate, delete, role changes, platform settings, templates, default categories) use the service role **only after** that check, and each writes an `audit_logs` entry (actor, action, target, metadata, IP).
-- Safeguards: admins cannot suspend themselves or super admins; deletion requires super admin + typing the user's email; the last super admin cannot revoke their own role.
-- The first super admin is created only server-side (CLI script or SQL) — see DEPLOYMENT.md §10.
+## Authorization & data isolation
+- All user data lives under `users/{uid}`; the uid is never taken from client input. Cross-user references (e.g. a category id) are resolved under the caller's own path, so another user's ids simply don't exist.
+- Roles (`super_admin`, `admin`, `support`) are stored on the user document and can only be changed server-side by a super admin (or the CLI script). `requireAdmin()` re-checks on every admin render and action.
+- **Admins cannot read financial records.** Admin views use account metadata and aggregate counts only, and every privileged action writes to `audit_logs` (actor, action, target, metadata, IP). Safeguards: no self-suspension, super admins can't be suspended, deletion needs the user's email typed, the last super admin can't revoke themselves.
 
-## Authentication
-- Supabase Auth with email + password; **email confirmation required** (6-digit OTP, expiry configured in Supabase). Unverified users are redirected to `/verify` by the proxy and by `requireWorkspace()`.
-- Sessions are httpOnly cookies managed by `@supabase/ssr`; the proxy refreshes them on each request and the server always validates with `auth.getUser()` (never trusts the cookie payload alone).
-- Suspension sets `profiles.status = 'suspended'` **and** bans the auth user, blocking sign-in and token refresh.
-- Password recovery uses a one-time code; responses never reveal whether an email is registered.
-- Account deletion requires typing `DELETE` and re-entering the password; files in storage are removed and the database cascades.
+## Integrity
+- Money is integer minor units with decimal.js parsing — no floating point.
+- Ledger operations run in Firestore transactions that read every dependent document, validate, then write entries and running totals together; conflicting transactions are retried, so concurrent withdrawals can't both succeed (tested).
+- Writes are idempotent (`client_ref` document ids, `${rule}_${date}` for recurring occurrences, hashed dedupe keys for notifications).
 
-## Input validation & errors
-- Every server action and API route validates input with Zod (`src/lib/validation`), including money parsing via decimal.js into integer minor units, date validity (leap years), enums and length limits.
-- Database CHECK constraints and triggers enforce invariants independently (positive amounts, savings never negative, goal withdrawals capped, principal never over-repaid, immutable ledger rows, single-level subcategories).
-- Errors returned to users are generic; Postgres error codes are mapped to safe messages. Details go to `app_errors` / server logs only.
+## Input validation, errors, rate limits
+- Every server action and API route validates with Zod. Uploaded files are type-checked by magic bytes (not the browser's claim) and size-limited.
+- Users get generic error messages; details go to `app_errors` (Admin → System health) and server logs.
+- Firestore-backed fixed-window rate limits (hashed keys) on register, login, verification, resend, password reset/change, account deletion, writes, uploads and exports.
 
-## Rate limiting
-Database-backed fixed windows (`check_rate_limit`, service-role only; keys are SHA-256 hashed) on register, login, OTP verify/resend, password reset, password change, account deletion, transaction writes and exports. Supabase Auth's own limits apply as well.
+## Transport & headers
+CSP (`connect-src 'self'`, `frame-ancestors 'none'`), HSTS, `X-Frame-Options: DENY`, `nosniff`, strict referrer policy, restrictive Permissions-Policy, COOP; authenticated pages are `Cache-Control: private, no-store`. Server Actions use Next.js origin checks; the cron endpoint requires a constant-time-compared bearer secret.
 
-## CSRF, headers & transport
-- Server Actions are POST-only with Next.js origin checks; API routes that change state don't exist outside server actions except the cron endpoint, which requires a constant-time-compared bearer secret.
-- Headers on every response: CSP (`frame-ancestors 'none'`, restricted `connect-src` to self + Supabase), HSTS, `X-Frame-Options: DENY`, `nosniff`, strict referrer policy, restrictive Permissions-Policy, COOP. Authenticated routes send `Cache-Control: private, no-store`.
+## Exports, PWA, secrets
+- CSV export neutralises spreadsheet formula injection.
+- The service worker caches only static assets and the offline page — never HTML, API or data responses. Offline entries are kept in IndexedDB per user, replayed through authenticated idempotent actions, and cleared on sign-out.
+- All Firebase credentials are server-only environment variables (`server-only` import guards); nothing secret is shipped to the browser. `.env*` is git-ignored.
 
-## Files
-- Private buckets (`receipts`, `avatars`, `goal-images`) with size and MIME limits; storage policies require the first path segment to equal `auth.uid()`. Files are served via short-lived signed URLs. Server actions reject paths outside the caller's folder.
-
-## Exports
-- CSV cells starting with `= + - @` are prefixed to prevent spreadsheet formula injection. Export routes are authenticated, rate limited and `no-store`.
-
-## PWA / offline
-- The service worker caches only hashed static assets, icons and the offline page — never HTML, API, RSC or Supabase responses.
-- Offline entries are stored in IndexedDB scoped to the user id, replayed through the authenticated server action (re-validated, de-duplicated by `client_ref`) and cleared on sign-out.
+## Test-only fake backend
+`FINANCE_OS_FAKE_BACKEND=1` swaps in an in-memory store and fake auth for automated E2E tests. It is ignored whenever `VERCEL` is set, so it cannot activate in a deployment, and its helper route (`/api/test/outbox`) returns 404 otherwise.
 
 ## What we never store
-Banking passwords, card numbers, CVVs or OTPs. The OTP lifecycle is handled entirely by Supabase Auth.
-
-## Secrets
-- Only `NEXT_PUBLIC_*` values reach the browser. The service-role key is read in `src/lib/env.server.ts`, which imports `server-only` so a client import fails the build.
-- `.env*` files are git-ignored; `.env.example` contains names only.
-
-## Reporting
-Report vulnerabilities privately to the maintainers; do not open public issues for security problems.
+Bank passwords, card numbers, CVVs or bank OTPs.
