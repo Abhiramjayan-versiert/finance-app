@@ -30,7 +30,12 @@ const securityHeaders = [
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
 ];
 
+// Identifies this build so long-running home-screen apps can tell when a newer
+// version is live and refresh themselves.
+const BUILD_ID = process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.VERCEL_DEPLOYMENT_ID ?? "dev";
+
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_BUILD_ID: BUILD_ID },
   poweredByHeader: false,
   reactStrictMode: true,
   experimental: {

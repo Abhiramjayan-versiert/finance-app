@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { ServiceWorkerRegistrar } from "@/components/pwa/service-worker";
 import { LiquidGlass } from "@/components/providers/liquid-glass";
 import { NativeBridge } from "@/components/native/native-bridge";
+import { UpdateWatcher } from "@/components/pwa/update-watcher";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ServiceWorkerRegistrar />
       <LiquidGlass />
       <NativeBridge />
+      <UpdateWatcher />
     </ThemeProvider>
   );
 }

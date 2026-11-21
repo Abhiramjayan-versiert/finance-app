@@ -2,7 +2,7 @@
  * Privacy rule: only public, content-hashed static assets and the offline
  * page are cached. HTML pages, API responses, server actions and database
  * requests are NEVER cached, so no financial data lands in a shared cache. */
-const VERSION = "fos-v1";
+const VERSION = "fos-v2";
 const STATIC_CACHE = `${VERSION}-static`;
 const PRECACHE = ["/offline", "/icons/icon.svg", "/icons/icon-192.png", "/icons/icon-512.png", "/manifest.webmanifest"];
 

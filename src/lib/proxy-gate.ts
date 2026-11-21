@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, isBackendConfigured } from "@/lib/env";
 
-const PUBLIC_PREFIXES = ["/", "/login", "/register", "/verify", "/forgot-password", "/reset-password", "/terms", "/privacy", "/delete-account", "/tools", "/offline", "/maintenance", "/suspended", "/api/health", "/api/cron", "/api/test", "/setup"];
+const PUBLIC_PREFIXES = ["/", "/login", "/register", "/verify", "/forgot-password", "/reset-password", "/terms", "/privacy", "/delete-account", "/tools", "/offline", "/maintenance", "/suspended", "/api/health", "/api/version", "/api/cron", "/api/test", "/setup"];
 
 function isPublic(pathname: string) {
   return PUBLIC_PREFIXES.some((p) => (p === "/" ? pathname === "/" : pathname === p || pathname.startsWith(`${p}/`)));
