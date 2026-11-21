@@ -28,6 +28,8 @@ import { publicEnv } from "@/lib/env";
 const CHALLENGE_COOKIE = "__fos_wa";
 const CHALLENGE_TTL_MS = 5 * 60 * 1000;
 const RP_NAME = "FINANCE OS";
+/** Production addresses of this app (passkeys are bound to the address they were created on). */
+const KNOWN_HOSTS = ["finance-os-versiert-solutions.vercel.app", "finance-os-omega-bice.vercel.app"];
 
 export interface StoredPasskey {
   credential_id: string; // base64url
@@ -50,7 +52,7 @@ async function relyingParty() {
   const h = await headers();
   const host = (h.get("x-forwarded-host") ?? h.get("host") ?? "").split(",")[0].trim().toLowerCase();
   const allowed = new Set(
-    [publicEnv.siteUrl, process.env.VERCEL_PROJECT_PRODUCTION_URL, process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL, ...(process.env.PASSKEY_EXTRA_HOSTS ?? "").split(",")]
+    [publicEnv.siteUrl, ...KNOWN_HOSTS, process.env.VERCEL_PROJECT_PRODUCTION_URL, process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL, ...(process.env.PASSKEY_EXTRA_HOSTS ?? "").split(",")]
       .filter(Boolean)
       .map((v) => v!.replace(/^https?:\/\//, "").replace(/\/.*$/, "").trim().toLowerCase()),
   );
