@@ -62,7 +62,6 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
       <section aria-label="Your balance" className="grid gap-4 lg:grid-cols-3">
         <Card className="relative overflow-hidden p-5 sm:p-6 lg:col-span-2">
-          <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-accent/15 blur-3xl" />
           <p className="flex items-center gap-2 text-[13px] font-medium text-muted"><Scale className="size-4 text-accent" />Available balance</p>
           <p className="mt-2 text-4xl font-semibold tracking-tight tabular sm:text-5xl">{m(o.nw.cash.cash_balance_minor)}</p>
           <p className="mt-1.5 text-[13px] text-muted">Cash you&apos;ve tracked, after savings, investments and loan payments.</p>

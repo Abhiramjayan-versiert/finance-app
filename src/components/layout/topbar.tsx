@@ -21,7 +21,7 @@ export function Topbar({ name, email, unread, isAdmin, announcement }: { name: s
     <>
       {announcement ? <div className="mx-3 mt-3 rounded-xl bg-accent-soft px-4 py-2 text-center text-xs text-accent sm:mx-6 lg:ml-3">{announcement}</div> : null}
       <header className="sticky top-0 z-30 px-3 pt-3 sm:px-6 lg:pl-3">
-        <div className="glass flex h-14 items-center gap-2 rounded-2xl px-2.5 sm:h-15 sm:px-4">
+        <div data-lg="clear" className="glass flex h-14 items-center gap-2 rounded-2xl px-2.5 sm:h-15 sm:px-4">
         <Button variant="ghost" size="icon-sm" className="lg:hidden" onClick={() => setMenuOpen(true)} aria-label="Open menu">
           <Menu />
         </Button>

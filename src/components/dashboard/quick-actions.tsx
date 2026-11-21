@@ -6,7 +6,7 @@ import { BarChart3, CreditCard, PiggyBank, Receipt, Target, TrendingUp, Wallet, 
 import { TransactionDialog } from "@/components/layout/quick-add";
 import { cn } from "@/lib/utils";
 
-const cls = "group flex min-w-[132px] flex-1 items-center gap-3 rounded-2xl px-3 py-3 text-left transition-all hover:bg-card-2 active:scale-[0.98]";
+const cls = "group flex min-w-[132px] flex-1 items-center gap-3 rounded-2xl px-3 py-3 text-left press hover:bg-card-2";
 
 function Inner({ icon: Icon, label, hint, primary }: { icon: LucideIcon; label: string; hint: string; primary?: boolean }) {
   return (

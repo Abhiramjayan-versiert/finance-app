@@ -6,8 +6,8 @@ export function LogoMark({ className }: { className?: string }) {
     <svg viewBox="0 0 32 32" aria-hidden className={cn("size-7", className)}>
       <defs>
         <linearGradient id="fos-logo" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#6d8dff" />
-          <stop offset="1" stopColor="#9b7bff" />
+          <stop stopColor="#3a3a40" />
+          <stop offset="1" stopColor="#0e0e10" />
         </linearGradient>
       </defs>
       <rect width="32" height="32" rx="10" fill="url(#fos-logo)" />
@@ -24,7 +24,7 @@ export function Logo({ href = "/", className }: { href?: string; className?: str
     <Link href={href} className={cn("flex items-center gap-2 font-semibold tracking-tight", className)}>
       <LogoMark />
       <span className="text-[15px]">
-        FINANCE <span className="text-accent">OS</span>
+        FINANCE <span className="text-muted">OS</span>
       </span>
     </Link>
   );

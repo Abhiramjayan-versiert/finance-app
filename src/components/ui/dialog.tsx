@@ -18,7 +18,7 @@ export function DialogContent({ className, children, title, description, wide, .
           "glass-strong fixed z-50 flex max-h-[92dvh] w-full flex-col outline-none",
           "inset-x-0 bottom-0 rounded-t-[28px] sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[28px]",
           wide ? "sm:max-w-2xl" : "sm:max-w-lg",
-          "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-4 sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=open]:zoom-in-95",
+          "data-[state=open]:lg-rise sm:data-[state=open]:lg-pop",
           className,
         )}
         {...props}

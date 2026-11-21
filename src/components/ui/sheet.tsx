@@ -16,7 +16,7 @@ export function SheetContent({ className, children, title, side = "left", ...pro
       <D.Content
         className={cn(
           "glass-strong fixed z-50 flex flex-col outline-none",
-          side === "left" ? "inset-y-0 left-0 w-80 rounded-r-[28px] data-[state=open]:animate-in data-[state=open]:slide-in-from-left" : "inset-x-0 bottom-0 max-h-[85dvh] rounded-t-[28px] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom",
+          side === "left" ? "inset-y-0 left-0 w-80 rounded-r-[28px] data-[state=open]:animate-in data-[state=open]:slide-in-from-left" : "inset-x-0 bottom-0 max-h-[85dvh] rounded-t-[28px] data-[state=open]:lg-rise",
           className,
         )}
         {...props}

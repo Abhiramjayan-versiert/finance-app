@@ -14,7 +14,7 @@ export function DropdownMenuContent({ className, align = "end", ...props }: Reac
       <M.Content
         align={align}
         sideOffset={6}
-        className={cn("glass-strong z-50 min-w-48 overflow-hidden rounded-2xl p-1.5 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95", className)}
+        className={cn("glass-strong z-50 min-w-48 overflow-hidden rounded-2xl p-1.5 origin-(--radix-dropdown-menu-content-transform-origin) data-[state=open]:lg-pop", className)}
         {...props}
       />
     </M.Portal>

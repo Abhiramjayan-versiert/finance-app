@@ -29,7 +29,7 @@ export function NavLinks({ onNavigate, isAdmin }: { onNavigate?: () => void; isA
                   aria-current={active ? "page" : undefined}
                   title={item.hint}
                   className={cn(
-                    "group flex items-center gap-3 rounded-xl px-3 py-2 transition-all",
+                    "press group flex items-center gap-3 rounded-2xl px-3 py-2",
                     active ? "glass text-foreground" : "text-muted hover:bg-card-2 hover:text-foreground",
                   )}
                 >
