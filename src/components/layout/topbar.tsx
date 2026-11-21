@@ -19,8 +19,9 @@ export function Topbar({ name, email, unread, isAdmin, announcement }: { name: s
   const { resolvedTheme, setTheme } = useTheme();
   return (
     <>
-      {announcement ? <div className="border-b border-accent/30 bg-accent-soft px-4 py-2 text-center text-xs text-accent">{announcement}</div> : null}
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-background/85 px-3 backdrop-blur sm:h-16 sm:px-6">
+      {announcement ? <div className="mx-3 mt-3 rounded-xl bg-accent-soft px-4 py-2 text-center text-xs text-accent sm:mx-6 lg:ml-3">{announcement}</div> : null}
+      <header className="sticky top-0 z-30 px-3 pt-3 sm:px-6 lg:pl-3">
+        <div className="glass flex h-14 items-center gap-2 rounded-2xl px-2.5 sm:h-15 sm:px-4">
         <Button variant="ghost" size="icon-sm" className="lg:hidden" onClick={() => setMenuOpen(true)} aria-label="Open menu">
           <Menu />
         </Button>
@@ -32,7 +33,7 @@ export function Topbar({ name, email, unread, isAdmin, announcement }: { name: s
         <QuickAdd
           trigger={
             <Button size="sm" className="hidden sm:inline-flex">
-              <Plus /> Add
+              <Plus /> Add something
             </Button>
           }
         />
@@ -44,7 +45,7 @@ export function Topbar({ name, email, unread, isAdmin, announcement }: { name: s
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex size-8 items-center justify-center rounded-full bg-card-2 text-xs font-semibold ring-1 ring-border hover:ring-border-strong" aria-label="Account menu">
+            <button className="flex size-9 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent ring-1 ring-border hover:ring-border-strong" aria-label="Account menu">
               {initials(name || email)}
             </button>
           </DropdownMenuTrigger>
@@ -80,6 +81,7 @@ export function Topbar({ name, email, unread, isAdmin, announcement }: { name: s
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </header>
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetContent title="Menu">

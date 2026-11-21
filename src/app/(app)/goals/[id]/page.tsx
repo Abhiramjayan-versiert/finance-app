@@ -40,7 +40,7 @@ export default async function GoalDetailPage({ params }: { params: Promise<{ id:
             <div className="flex flex-col gap-4 sm:flex-row">
               {imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={imageUrl} alt={g.name} className="h-32 w-full rounded-lg object-cover sm:w-40" />
+                <img src={imageUrl} alt={g.name} className="h-32 w-full rounded-2xl object-cover sm:w-40" />
               ) : null}
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -75,7 +75,7 @@ export default async function GoalDetailPage({ params }: { params: Promise<{ id:
               <div className="flex justify-between border-t border-border pt-3"><dt className="text-muted">Your recent pace</dt><dd className="tabular">{m(g.monthlyPaceMinor)}/mo</dd></div>
               <div className="flex justify-between"><dt className="text-muted">Estimated completion</dt><dd>{g.plan.remainingMinor === 0 ? "Reached" : g.etaDate ? formatDisplayDate(g.etaDate) : "Add contributions to estimate"}</dd></div>
             </dl>
-            {g.plan.isOverdue ? <p className="mt-3 rounded-md bg-warning/10 p-2 text-xs text-warning">The target date has passed. Edit the goal to set a new deadline.</p> : null}
+            {g.plan.isOverdue ? <p className="mt-3 rounded-xl bg-warning/10 p-2 text-xs text-warning">The target date has passed. Edit the goal to set a new deadline.</p> : null}
             <EstimateNote className="mt-3" />
           </CardContent>
         </Card>

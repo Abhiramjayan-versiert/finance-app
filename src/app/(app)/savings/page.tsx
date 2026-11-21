@@ -6,6 +6,7 @@ import { totals } from "@/lib/finance/analytics";
 import { lastMonths, monthLabel, periodRange } from "@/lib/finance/dates";
 import { formatMoney, percent } from "@/lib/finance/money";
 import { PageHeader } from "@/components/shared/page-header";
+import { HELP } from "@/components/shared/page-help";
 import { isOpeningEntry } from "@/lib/finance/opening";
 import { StatCard } from "@/components/shared/stat-card";
 import { EmptyState } from "@/components/shared/states";
@@ -40,7 +41,7 @@ export default async function SavingsPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <PageHeader title="Savings" description="Virtual buckets for money you set aside. Moving money into savings is never treated as an expense." actions={<SavingsToolbar accounts={accounts} defaultOpen={sp.new === "1"} />} />
+      <PageHeader help={HELP.savings} title="Savings" description="Virtual buckets for money you set aside. Moving money into savings is never treated as an expense." actions={<SavingsToolbar accounts={accounts} defaultOpen={sp.new === "1"} />} />
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Total savings" value={m(savings.totalMinor + goalAlloc)} icon={PiggyBank} hint={goalAlloc ? `incl. ${m(goalAlloc)} in goals` : "Across all buckets"} highlight />
         <StatCard label="Saved this month" value={m(monthNet)} icon={TrendingUp} hint="Net deposits" />

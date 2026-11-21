@@ -13,6 +13,7 @@ import { getBudgets, getTransactions, getCategories } from "@/server/queries/fin
 import { budgetAppliesTo, computeBudgetUsage, spentForBudget } from "@/lib/finance/budgets";
 import { totals } from "@/lib/finance/analytics";
 import { PageHeader } from "@/components/shared/page-header";
+import { HELP } from "@/components/shared/page-help";
 import { StatCard } from "@/components/shared/stat-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -52,7 +53,7 @@ export default async function AchievementsPage() {
 
   return (
     <>
-      <PageHeader title="Achievements" description="Celebrate good money habits. Badges are awarded only from your real activity." />
+      <PageHeader help={HELP.achievements} title="Achievements" description="Celebrate good money habits. Badges are awarded only from your real activity." />
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Badges earned" value={`${earned.size} / ${list.length}`} icon={Icons.Award} highlight />
         <StatCard label="Tracking streak" value={`${stats.streakDays} day${stats.streakDays === 1 ? "" : "s"}`} icon={Flame} hint="Consecutive days with entries" />

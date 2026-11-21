@@ -6,6 +6,7 @@ import { getRecurring, getTransactions } from "@/server/queries/finance";
 import { totals } from "@/lib/finance/analytics";
 import { formatMoney } from "@/lib/finance/money";
 import { PageHeader } from "@/components/shared/page-header";
+import { HELP } from "@/components/shared/page-help";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TransactionFilters } from "@/components/transactions/filters";
@@ -36,7 +37,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
   return (
     <>
-      <PageHeader
+      <PageHeader help={HELP.transactions}
         title="Transactions"
         description="Every income and expense entry, searchable and filterable."
         actions={

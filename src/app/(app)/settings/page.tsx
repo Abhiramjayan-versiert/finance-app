@@ -4,6 +4,7 @@ import { requireWorkspace } from "@/lib/auth";
 import { fileUrl } from "@/lib/files/url";
 import { isEmailConfigured } from "@/lib/env.server";
 import { PageHeader } from "@/components/shared/page-header";
+import { HELP } from "@/components/shared/page-help";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CategoryManager, DeleteAccountForm, NotificationPrefsForm, PreferencesForm, ProfileForm, SecurityForms } from "@/components/settings/settings-forms";
@@ -27,11 +28,11 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const links = [["profile", "Profile"], ["preferences", "Preferences"], ["notifications", "Notifications"], ["categories", "Categories"], ["security", "Security"], ["data", "Your data"]];
   return (
     <>
-      <PageHeader title="Settings" description="Profile, preferences and account controls." />
+      <PageHeader help={HELP.settings} title="Settings" description="Profile, preferences and account controls." />
       <nav className="mb-4 flex flex-wrap gap-2" aria-label="Settings sections">
         {links.map(([id, l]) => <a key={id} href={`#${id}`} className="rounded-full border border-border px-3 py-1 text-xs text-muted hover:text-foreground">{l}</a>)}
       </nav>
-      {sp.recovery ? <p className="mb-4 rounded-md border border-accent/40 bg-accent-soft p-3 text-sm text-accent">You signed in with a recovery link. Set a new password below.</p> : null}
+      {sp.recovery ? <p className="mb-4 rounded-xl border border-accent/40 bg-accent-soft p-3 text-sm text-accent">You signed in with a recovery link. Set a new password below.</p> : null}
       <div className="grid gap-4 lg:grid-cols-2">
         <Section id="profile" title="Profile"><ProfileForm fullName={ws.profile.full_name} country={ws.profile.country} email={ws.email} avatarUrl={avatar} /></Section>
         <Section id="preferences" title="Preferences" description="Defaults: INR (₹), en-IN, Asia/Kolkata."><PreferencesForm s={ws.settings} /></Section>
@@ -46,7 +47,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <Button variant="secondary" size="sm" asChild><a href="/api/export?report=all&format=json"><Download /> Export all data (JSON)</a></Button>
             <Button variant="secondary" size="sm" asChild><a href="/api/export?report=transactions&from=1900-01-01&to=2200-12-31&format=csv"><Download /> All transactions (CSV)</a></Button>
           </div>
-          <div className="mt-6 rounded-md border border-danger/30 p-4">
+          <div className="mt-6 rounded-xl border border-danger/30 p-4">
             <p className="text-sm font-medium text-danger">Danger zone</p>
             <p className="mb-3 mt-1 text-xs text-muted">Permanently delete your account and every financial record.</p>
             <DeleteAccountForm />

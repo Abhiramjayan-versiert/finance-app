@@ -12,11 +12,11 @@ export const SheetClose = D.Close;
 export function SheetContent({ className, children, title, side = "left", ...props }: React.ComponentProps<typeof D.Content> & { title: string; side?: "left" | "bottom" }) {
   return (
     <D.Portal>
-      <D.Overlay className="fixed inset-0 z-50 bg-black/60 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
+      <D.Overlay className="fixed inset-0 z-50 bg-black/25 backdrop-blur-sm data-[state=open]:animate-in data-[state=open]:fade-in-0" />
       <D.Content
         className={cn(
-          "fixed z-50 flex flex-col bg-background-2 shadow-2xl outline-none",
-          side === "left" ? "inset-y-0 left-0 w-72 border-r border-border data-[state=open]:animate-in data-[state=open]:slide-in-from-left" : "inset-x-0 bottom-0 max-h-[85dvh] rounded-t-xl border-t border-border data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom",
+          "glass-strong fixed z-50 flex flex-col outline-none",
+          side === "left" ? "inset-y-0 left-0 w-80 rounded-r-[28px] data-[state=open]:animate-in data-[state=open]:slide-in-from-left" : "inset-x-0 bottom-0 max-h-[85dvh] rounded-t-[28px] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom",
           className,
         )}
         {...props}

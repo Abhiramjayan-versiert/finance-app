@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ImagePlus } from "lucide-react";
-import { ActionForm, CheckboxField, FormRow, MoneyField, SelectField, SubmitButton, TextAreaField, TextField, type ClientActionResult, type FormAction } from "@/components/forms/action-form";
+import { ActionForm, MoreOptions, CheckboxField, FormRow, MoneyField, SelectField, SubmitButton, TextAreaField, TextField, type ClientActionResult, type FormAction } from "@/components/forms/action-form";
 import { useWorkspace } from "@/components/providers/workspace";
 import { Button } from "@/components/ui/button";
 import { computeGoalPlan } from "@/lib/finance/goals";
@@ -92,6 +92,7 @@ export function GoalForm({ initial, savedMinor = 0, accounts, onDone }: { initia
           <CheckboxField name="currentSavingsFromCash" label="Take this from my tracked cash balance" description="Leave unticked if the money was saved before you started using FINANCE OS." />
         </>
       ) : null}
+      <MoreOptions summary="product link, picture, notes" defaultOpen={!!initial}>
       <FormRow>
         <TextField label="Product category" name="productCategory" defaultValue={initial?.product_category ?? ""} placeholder="e.g. Electronics" />
         <TextField label="Product URL" name="productUrl" type="url" defaultValue={initial?.product_url ?? ""} placeholder="https://… (optional)" />
@@ -103,6 +104,7 @@ export function GoalForm({ initial, savedMinor = 0, accounts, onDone }: { initia
         </Button>
         <span className="text-[11px] text-muted">Optional</span>
       </div>
+      </MoreOptions>
       {initial ? (
         <SelectField label="Status" name="status" defaultValue={initial.status}>
           <option value="not_started">Not started</option>
@@ -113,7 +115,7 @@ export function GoalForm({ initial, savedMinor = 0, accounts, onDone }: { initia
         </SelectField>
       ) : null}
 
-      <div className="rounded-lg border border-accent/30 bg-accent-soft p-3" aria-live="polite">
+      <div className="rounded-2xl border border-accent/30 bg-accent-soft p-4" aria-live="polite">
         <p className="mb-2 text-xs font-medium text-accent">Your plan</p>
         <dl className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs sm:grid-cols-4">
           <div><dt className="text-muted">Remaining</dt><dd className="font-semibold tabular">{m(plan.remainingMinor)}</dd></div>

@@ -17,7 +17,7 @@ export function NotificationList({ items }: { items: AppNotification[] }) {
       <div className="mb-3 flex justify-end">
         <Button variant="secondary" size="sm" disabled={pending || items.every((i) => i.read_at)} onClick={() => run(() => markNotificationsReadAction())}><CheckCheck /> Mark all read</Button>
       </div>
-      <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+      <ul className="divide-y divide-border glass rounded-[22px]">
         {items.map((n) => (
           <li key={n.id} className={cn("flex items-start gap-3 p-4", !n.read_at && "bg-accent-soft/40")}>
             <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", n.read_at ? "bg-transparent" : "bg-accent")} aria-label={n.read_at ? undefined : "Unread"} />

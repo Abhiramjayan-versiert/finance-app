@@ -21,7 +21,7 @@ export function PlatformSettingsForm({ values, canEdit }: { values: Record<strin
 
 export function TemplateForm({ t }: { t: { id: string; key: string; title_template: string; body_template: string; is_active: boolean } }) {
   return (
-    <ActionForm action={updateTemplateAction as unknown as FormAction} className="rounded-md border border-border p-3">
+    <ActionForm action={updateTemplateAction as unknown as FormAction} className="rounded-xl border border-border p-3">
       <input type="hidden" name="id" value={t.id} />
       <p className="text-xs font-medium text-muted">{t.key}</p>
       <TextField label="Title" name="title_template" defaultValue={t.title_template} />
@@ -40,13 +40,13 @@ export function DefaultCategories({ items }: { items: Array<{ id: string; kind: 
     <div>
       <ActionForm action={addDefaultCategoryAction as unknown as FormAction} resetOnSuccess className="mb-4 flex flex-wrap items-end gap-2 space-y-0">
         <NativeSelect name="kind" className="w-auto" aria-label="Kind"><option value="expense">Expense</option><option value="income">Income</option></NativeSelect>
-        <input name="name" placeholder="Category name" aria-label="Category name" className="h-10 min-w-0 flex-1 basis-40 rounded-md border border-border bg-background-2 px-3 text-sm" required maxLength={60} />
-        <input name="color" type="color" defaultValue="#A0A6AD" aria-label="Colour" className="h-10 w-12 rounded-md border border-border bg-background-2" />
+        <input name="name" placeholder="Category name" aria-label="Category name" className="h-10 min-w-0 flex-1 basis-40 rounded-xl border border-border bg-background-2 px-3 text-sm" required maxLength={60} />
+        <input name="color" type="color" defaultValue="#A0A6AD" aria-label="Colour" className="h-10 w-12 rounded-xl border border-border bg-background-2" />
         <SubmitButton size="sm">Add</SubmitButton>
       </ActionForm>
       <ul className="grid gap-1 sm:grid-cols-2">
         {items.map((c) => (
-          <li key={c.id} className="flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-card-2">
+          <li key={c.id} className="flex min-w-0 items-center gap-2 rounded-xl px-2 py-1.5 text-sm hover:bg-card-2">
             <span className="size-3 rounded-full" style={{ background: c.color }} />
             <span className={c.is_active ? "min-w-0 flex-1 truncate" : "min-w-0 flex-1 truncate text-muted line-through"}>{c.name}</span>
             <Badge>{c.kind}</Badge>

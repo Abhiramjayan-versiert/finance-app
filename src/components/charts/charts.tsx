@@ -17,7 +17,7 @@ function useFmt() {
 
 function TooltipBox({ label, rows }: { label: string; rows: Array<{ name: string; value: string; color: string }> }) {
   return (
-    <div className="rounded-md border border-border bg-background-2 px-3 py-2 text-xs shadow-xl">
+    <div className="rounded-xl border border-border bg-background-2 px-3 py-2 text-xs shadow-xl">
       <p className="mb-1 font-medium">{label}</p>
       {rows.map((r) => (
         <p key={r.name} className="flex items-center gap-2 text-muted">

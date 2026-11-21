@@ -81,7 +81,7 @@ export function OfflineIndicator() {
 
   if (online && !pending) return null;
   return (
-    <button onClick={() => void sync()} className="flex items-center gap-1.5 rounded-md border border-warning/40 bg-warning/10 px-2 py-1 text-xs text-warning" aria-live="polite">
+    <button onClick={() => void sync()} className="flex items-center gap-1.5 rounded-xl border border-warning/40 bg-warning/10 px-2 py-1 text-xs text-warning" aria-live="polite">
       {online ? <RefreshCw className={syncing ? "size-3 animate-spin" : "size-3"} /> : <CloudOff className="size-3" />}
       {online ? `${pending} to sync` : pending ? `Offline · ${pending} queued` : "Offline"}
     </button>

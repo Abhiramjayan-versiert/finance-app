@@ -7,6 +7,7 @@ import { ASSET_CLASS_LABEL, portfolioTotals, sipFutureValue } from "@/lib/financ
 import { formatMoney, percent } from "@/lib/finance/money";
 import { formatDisplayDate, fractionalMonthsBetween, lastMonths, monthLabel } from "@/lib/finance/dates";
 import { PageHeader } from "@/components/shared/page-header";
+import { HELP } from "@/components/shared/page-help";
 import { StatCard } from "@/components/shared/stat-card";
 import { EmptyState, EstimateNote } from "@/components/shared/states";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,7 +31,7 @@ export default async function InvestmentsPage({ searchParams }: { searchParams: 
 
   return (
     <>
-      <PageHeader title="Investments" description="Manually tracked portfolio. Values are what you enter — FINANCE OS does not fetch market prices." actions={<NewInvestmentButton defaultOpen={sp.new === "1"} />} />
+      <PageHeader help={HELP.investments} title="Investments" description="Manually tracked portfolio. Values are what you enter — FINANCE OS does not fetch market prices." actions={<NewInvestmentButton defaultOpen={sp.new === "1"} />} />
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Total invested" value={m(p.investedMinor)} icon={Coins} hint="Remaining cost basis" />
         <StatCard label="Current value" value={m(p.currentValueMinor)} icon={TrendingUp} highlight />

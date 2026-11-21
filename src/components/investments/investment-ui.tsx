@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { History, MoreVertical, Pencil, Plus, RefreshCw, ShoppingCart, Trash2, HandCoins } from "lucide-react";
-import { ActionForm, CheckboxField, FormRow, MoneyField, SelectField, SubmitButton, TextAreaField, TextField, type FormAction } from "@/components/forms/action-form";
+import { ActionForm, MoreOptions, CheckboxField, FormRow, MoneyField, SelectField, SubmitButton, TextAreaField, TextField, type FormAction } from "@/components/forms/action-form";
 import { useWorkspace } from "@/components/providers/workspace";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
@@ -31,11 +31,7 @@ function InvestmentForm({ onDone }: { onDone: () => void }) {
         <MoneyField label={sip ? "Total contributed so far" : "Amount invested"} name="amountInvested" currencySymbol={ws.currencySymbol} required />
         <TextField label="Purchase date" name="purchaseDate" type="date" defaultValue={ws.today} required />
       </FormRow>
-      <FormRow className="sm:grid-cols-3">
-        <TextField label="Units / quantity" name="units" inputMode="decimal" placeholder="Optional" />
-        <MoneyField label="Purchase price / unit" name="purchasePrice" currencySymbol={ws.currencySymbol} hint="Optional" />
-        <MoneyField label="Current estimated value" name="currentValue" currencySymbol={ws.currencySymbol} hint="Defaults to amount invested" />
-      </FormRow>
+      <MoneyField label="Current estimated value" name="currentValue" currencySymbol={ws.currencySymbol} hint="What it's worth today. Leave blank to use the amount invested." />
       {sip ? (
         <FormRow className="sm:grid-cols-4">
           <MoneyField label="Monthly SIP" name="sipMonthly" currencySymbol={ws.currencySymbol} />
@@ -43,11 +39,16 @@ function InvestmentForm({ onDone }: { onDone: () => void }) {
           <TextField label="Duration (months)" name="sipDurationMonths" type="number" min={1} max={600} />
           <TextField label="Expected return %" name="expectedReturnPct" inputMode="decimal" placeholder="e.g. 12" />
         </FormRow>
-      ) : (
-        <TextField label="Expected annual return % (for projections)" name="expectedReturnPct" inputMode="decimal" placeholder="Optional" />
-      )}
-      <TextField label="Symbol / folio" name="symbol" placeholder="Optional" />
-      <TextAreaField label="Notes" name="notes" rows={2} />
+      ) : null}
+      <MoreOptions summary={sip ? "units, symbol, notes" : "units, expected return, symbol, notes"}>
+        <FormRow>
+          <TextField label="Units / quantity" name="units" inputMode="decimal" placeholder="Optional" />
+          <MoneyField label="Purchase price / unit" name="purchasePrice" currencySymbol={ws.currencySymbol} hint="Optional" />
+        </FormRow>
+        {!sip ? <TextField label="Expected annual return % (for projections)" name="expectedReturnPct" inputMode="decimal" placeholder="Optional" /> : null}
+        <TextField label="Symbol / folio" name="symbol" placeholder="Optional" />
+        <TextAreaField label="Notes" name="notes" rows={2} />
+      </MoreOptions>
       <CheckboxField name="fromCash" label="Paid from my tracked cash balance" description="Leave unticked for investments made before you started tracking." />
       <p className="text-[11px] text-muted">FINANCE OS does not fetch live prices. Update the current value whenever you check your holdings.</p>
       <div className="flex justify-end"><SubmitButton>Add investment</SubmitButton></div>

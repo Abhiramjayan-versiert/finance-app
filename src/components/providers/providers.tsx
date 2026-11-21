@@ -8,7 +8,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
       {children}
-      <Toaster position="top-center" richColors closeButton theme="system" toastOptions={{ className: "!rounded-lg" }} />
+      <Toaster position="top-center" richColors closeButton theme="system" toastOptions={{ className: "!rounded-2xl" }} />
       <ServiceWorkerRegistrar />
     </ThemeProvider>
   );

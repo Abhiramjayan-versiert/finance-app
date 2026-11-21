@@ -12,7 +12,7 @@ export default function Setup() {
       <Logo />
       <h1 className="text-xl font-semibold">Finish configuring FINANCE OS</h1>
       <p className="text-sm text-muted">This deployment has no Firebase connection yet. Add these environment variables in Vercel and redeploy:</p>
-      <pre className="overflow-x-auto rounded-md border border-border bg-card p-3 text-xs">FIREBASE_PROJECT_ID{"\n"}FIREBASE_CLIENT_EMAIL{"\n"}FIREBASE_PRIVATE_KEY{"\n"}FIREBASE_WEB_API_KEY{"\n"}NEXT_PUBLIC_SITE_URL</pre>
+      <pre className="overflow-x-auto rounded-xl border border-border bg-card p-3 text-xs">FIREBASE_PROJECT_ID{"\n"}FIREBASE_CLIENT_EMAIL{"\n"}FIREBASE_PRIVATE_KEY{"\n"}FIREBASE_WEB_API_KEY{"\n"}NEXT_PUBLIC_SITE_URL</pre>
       <p className="text-sm text-muted">See <code>docs/DEPLOYMENT.md</code> for the full guide.</p>
     </div>
   );

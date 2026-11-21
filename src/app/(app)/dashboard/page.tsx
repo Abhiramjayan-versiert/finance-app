@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { BarList, IncomeExpenseChart, TrendChart } from "@/components/charts/charts";
 import { TransactionList } from "@/components/transactions/transaction-list";
 import { QuickActions } from "@/components/dashboard/quick-actions";
+import { GetStarted, type StartStep } from "@/components/dashboard/get-started";
 import { EmptyState } from "@/components/shared/states";
 import { GOAL_STATUS_LABEL } from "@/lib/finance/goals";
 import { ASSET_CLASS_LABEL } from "@/lib/finance/investments";
@@ -31,59 +32,110 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const hasAnyData = o.series.some((s) => s.incomeMinor || s.expenseMinor) || o.nw.totalAssetsMinor > 0 || o.nw.goals.length > 0;
   const activeGoals = o.nw.goals.filter((g) => !["cancelled", "completed"].includes(g.derivedStatus));
 
+  const everIncome = o.series.some((s) => s.incomeMinor > 0);
+  const everExpense = o.series.some((s) => s.expenseMinor > 0);
+  const steps: StartStep[] = [
+    { key: "income", title: "Add your income", why: "Your salary or any money you receive.", href: "/income", done: everIncome },
+    { key: "expense", title: "Add an expense", why: "Log what you spend — it takes 10 seconds.", href: "/expenses", done: everExpense },
+    { key: "budget", title: "Set a monthly budget", why: "Get warned before you overspend.", href: "/budgets", done: o.budgetRows.length > 0 },
+    { key: "goal", title: "Plan a goal", why: "A phone, trip or house — see how much to save each month.", href: "/goals?new=1", done: o.nw.goals.length > 0 },
+    { key: "savings", title: "Start a savings pot", why: "E.g. an emergency fund. Money set aside is kept separate.", href: "/savings?new=1", done: o.nw.savings.accounts.length > 0 },
+    { key: "wealth", title: "Add an investment or loan", why: "Completes your net worth picture.", href: "/investments?new=1", done: o.nw.investments.length > 0 || o.nw.debts.length > 0 },
+  ];
+  const monthName = monthLabel(o.today.slice(0, 7));
+
   return (
     <>
       <PageHeader
         title={sp.welcome ? `Welcome to FINANCE OS${firstName ? `, ${firstName}` : ""}` : `Hello${firstName ? `, ${firstName}` : ""}`}
-        description={`${monthLabel(o.today.slice(0, 7))} overview · all figures from your records`}
+        description={`Here's your money for ${monthName}. Every number comes from what you've entered.`}
+        help={
+          <>
+            <p>Your <b>available balance</b> is the cash you&apos;ve recorded (income minus expenses), less money moved into savings, goals, investments or loan payments.</p>
+            <p>The <b>safe-to-spend</b> figure takes that balance, subtracts bills and EMIs still due this month and the goal savings you planned, then spreads the rest over the days left.</p>
+            <p>Use the <b>+ Add</b> button (top right, or the round button on your phone) any time to record something new.</p>
+          </>
+        }
       />
 
-      <QuickActions />
+      <GetStarted steps={steps} />
 
-      <section aria-label="Financial overview" className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Income this month" value={m(o.thisMonth.incomeMinor)} icon={Wallet} change={changePct(o.thisMonth.incomeMinor, o.lastMonth.incomeMinor)} hint="vs last month" />
-        <StatCard label="Expenses this month" value={m(o.thisMonth.expenseMinor)} icon={Receipt} change={changePct(o.thisMonth.expenseMinor, o.lastMonth.expenseMinor)} changeGood="down" hint="vs last month" />
-        <StatCard label="Available balance" value={m(o.nw.cash.cash_balance_minor)} icon={Scale} hint="Tracked cash after savings & payments" highlight />
-        <StatCard label="Total savings" value={m(o.totalSavingsMinor)} icon={PiggyBank} hint="Buckets + goal allocations" />
-        <StatCard label="Investments" value={m(o.portfolio.currentValueMinor)} icon={TrendingUp} hint={o.portfolio.investedMinor ? `${o.portfolio.returnPct >= 0 ? "+" : ""}${o.portfolio.returnPct}% unrealised` : "Current value"} />
-        <StatCard label="Outstanding debts" value={m(o.outstandingDebtMinor)} icon={CreditCard} hint={`${o.nw.debts.filter((d) => d.outstandingMinor > 0).length} active`} />
-        <StatCard label="Net worth" value={m(o.nw.netWorthMinor)} icon={Landmark} hint="Assets − liabilities" />
-        <StatCard label="Savings rate" value={o.thisMonth.incomeMinor ? `${o.thisMonth.savingsRatePct}%` : "—"} icon={Percent} hint={o.thisMonth.incomeMinor ? "Of this month's income" : "Add income to calculate"} />
-      </section>
-
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <Card className={o.safe.shortfallMinor ? "border-warning/40" : "border-accent/30"}>
+      <section aria-label="Your balance" className="grid gap-4 lg:grid-cols-3">
+        <Card className="relative overflow-hidden p-5 sm:p-6 lg:col-span-2">
+          <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-accent/15 blur-3xl" />
+          <p className="flex items-center gap-2 text-[13px] font-medium text-muted"><Scale className="size-4 text-accent" />Available balance</p>
+          <p className="mt-2 text-4xl font-semibold tracking-tight tabular sm:text-5xl">{m(o.nw.cash.cash_balance_minor)}</p>
+          <p className="mt-1.5 text-[13px] text-muted">Cash you&apos;ve tracked, after savings, investments and loan payments.</p>
+          <dl className="mt-5 grid grid-cols-3 gap-2 border-t border-border pt-4 text-sm">
+            <div className="min-w-0">
+              <dt className="text-xs text-muted">Net worth</dt>
+              <dd className="mt-0.5 truncate font-semibold tabular">{m(o.nw.netWorthMinor)}</dd>
+            </div>
+            <div className="min-w-0">
+              <dt className="text-xs text-muted">Saved so far</dt>
+              <dd className="mt-0.5 truncate font-semibold tabular">{m(o.totalSavingsMinor)}</dd>
+            </div>
+            <div className="min-w-0">
+              <dt className="text-xs text-muted">Savings rate</dt>
+              <dd className="mt-0.5 truncate font-semibold tabular">{o.thisMonth.incomeMinor ? `${o.thisMonth.savingsRatePct}%` : "—"}</dd>
+            </div>
+          </dl>
+        </Card>
+        <Card className={o.safe.shortfallMinor ? "ring-1 ring-warning/40" : ""}>
           <CardHeader>
             <div>
               <CardTitle className="flex items-center gap-1.5"><ShieldCheck className="size-4 text-accent" /> Safe to spend</CardTitle>
-              <CardDescription>Rest of {monthLabel(o.today.slice(0, 7))} · {o.safe.daysLeft} day{o.safe.daysLeft === 1 ? "" : "s"} left</CardDescription>
+              <CardDescription>Rest of {monthName} · {o.safe.daysLeft} day{o.safe.daysLeft === 1 ? "" : "s"} left</CardDescription>
             </div>
           </CardHeader>
           <CardContent>
             {o.safe.shortfallMinor ? (
               <>
-                <p className="text-2xl font-semibold text-warning tabular">{m(0)}<span className="text-sm font-normal text-muted"> / day</span></p>
+                <p className="text-3xl font-semibold text-warning tabular">{m(0)}<span className="text-sm font-normal text-muted"> / day</span></p>
                 <p className="mt-1 text-xs text-warning">You&apos;re {m(o.safe.shortfallMinor)} short of covering this month&apos;s bills and goal savings.</p>
               </>
             ) : (
               <>
-                <p className="text-2xl font-semibold text-accent tabular">{m(o.safe.perDayMinor)}<span className="text-sm font-normal text-muted"> / day</span></p>
+                <p className="text-3xl font-semibold text-accent tabular">{m(o.safe.perDayMinor)}<span className="text-sm font-normal text-muted"> / day</span></p>
                 <p className="mt-1 text-xs text-muted">{m(o.safe.totalMinor)} left for the month</p>
               </>
             )}
             <dl className="mt-3 space-y-1 border-t border-border pt-3 text-xs">
-              <div className="flex justify-between"><dt className="text-muted">Available cash</dt><dd className="tabular">{m(o.nw.cash.cash_balance_minor)}</dd></div>
-              <div className="flex justify-between"><dt className="text-muted">− Bills & EMIs due this month</dt><dd className="tabular">{m(o.safe.billsThisMonthMinor)}</dd></div>
-              <div className="flex justify-between"><dt className="text-muted">− Goal savings still to set aside</dt><dd className="tabular">{m(o.safe.plannedSavingsMinor)}</dd></div>
+              <div className="flex justify-between gap-2"><dt className="text-muted">Available cash</dt><dd className="tabular">{m(o.nw.cash.cash_balance_minor)}</dd></div>
+              <div className="flex justify-between gap-2"><dt className="text-muted">− Bills & EMIs due</dt><dd className="tabular">{m(o.safe.billsThisMonthMinor)}</dd></div>
+              <div className="flex justify-between gap-2"><dt className="text-muted">− Goal savings to set aside</dt><dd className="tabular">{m(o.safe.plannedSavingsMinor)}</dd></div>
             </dl>
-            <p className="mt-2 text-[11px] text-muted">An estimate from your records and schedules.</p>
           </CardContent>
         </Card>
-        <Card className="lg:col-span-2">
+      </section>
+
+      <Card className="mt-4 p-2">
+        <p className="px-3 pb-1 pt-2 text-xs font-medium text-muted">What would you like to do?</p>
+        <QuickActions />
+      </Card>
+
+      <h2 className="mb-2.5 mt-7 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">This month</h2>
+      <section aria-label="This month" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard label="Income this month" value={m(o.thisMonth.incomeMinor)} icon={Wallet} change={changePct(o.thisMonth.incomeMinor, o.lastMonth.incomeMinor)} hint="vs last month" />
+        <StatCard label="Expenses this month" value={m(o.thisMonth.expenseMinor)} icon={Receipt} change={changePct(o.thisMonth.expenseMinor, o.lastMonth.expenseMinor)} changeGood="down" hint="vs last month" />
+        <StatCard label="Left after expenses" value={m(o.thisMonth.incomeMinor - o.thisMonth.expenseMinor)} icon={Scale} hint="Income − expenses" />
+        <StatCard label="Savings rate" value={o.thisMonth.incomeMinor ? `${o.thisMonth.savingsRatePct}%` : "—"} icon={Percent} hint={o.thisMonth.incomeMinor ? "Of this month's income" : "Add income to calculate"} />
+      </section>
+
+      <h2 className="mb-2.5 mt-7 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">Everything you own &amp; owe</h2>
+      <section aria-label="Financial overview" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard label="Total savings" value={m(o.totalSavingsMinor)} icon={PiggyBank} hint="Savings pots + goal money" />
+        <StatCard label="Investments" value={m(o.portfolio.currentValueMinor)} icon={TrendingUp} hint={o.portfolio.investedMinor ? `${o.portfolio.returnPct >= 0 ? "+" : ""}${o.portfolio.returnPct}% unrealised` : "Current value"} />
+        <StatCard label="Outstanding debts" value={m(o.outstandingDebtMinor)} icon={CreditCard} hint={`${o.nw.debts.filter((d) => d.outstandingMinor > 0).length} active`} />
+        <StatCard label="Net worth" value={m(o.nw.netWorthMinor)} icon={Landmark} hint="What you own − what you owe" highlight />
+      </section>
+
+      <div className="mt-7 grid gap-4">
+        <Card>
           <CardHeader>
             <div>
-              <CardTitle className="flex items-center gap-1.5"><CalendarClock className="size-4 text-muted" /> Upcoming in the next 30 days</CardTitle>
-              <CardDescription>Recurring transactions and loan EMIs</CardDescription>
+              <CardTitle className="flex items-center gap-1.5"><CalendarClock className="size-4 text-muted" /> Coming up in the next 30 days</CardTitle>
+              <CardDescription>Recurring bills, salary and loan EMIs</CardDescription>
             </div>
             <Button variant="ghost" size="sm" asChild><Link href="/transactions?view=recurring">Manage</Link></Button>
           </CardHeader>
@@ -91,7 +143,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
             {o.upcoming.length ? (
               <ul className="divide-y divide-border">
                 {o.upcoming.slice(0, 7).map((u) => (
-                  <li key={u.key} className="flex items-center gap-3 py-2 text-sm">
+                  <li key={u.key} className="flex items-center gap-3 py-2.5 text-sm">
                     <span className="w-16 shrink-0 text-xs text-muted">{formatDisplayDate(u.date, "dd MMM")}</span>
                     <Link href={u.link} className="min-w-0 flex-1 truncate hover:underline">{u.title}</Link>
                     <span className={u.kind === "recurring_income" ? "font-medium text-success tabular" : "font-medium tabular"}>{u.kind === "recurring_income" ? "+" : "−"}{m(u.amountMinor)}</span>
@@ -99,7 +151,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 ))}
               </ul>
             ) : (
-              <p className="py-6 text-center text-xs text-muted">Nothing scheduled. Mark rent, salary or subscriptions as recurring, or add an EMI with a due date, to see them here.</p>
+              <p className="py-6 text-center text-xs text-muted">Nothing scheduled yet. When adding rent, salary or a subscription, tick &ldquo;This repeats&rdquo; — or add a loan with an EMI due date — and it will show up here.</p>
             )}
           </CardContent>
         </Card>

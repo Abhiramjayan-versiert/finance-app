@@ -7,6 +7,7 @@ import { formatDisplayDate, previousRange, monthLabel, lastMonths } from "@/lib/
 import { formatMoney } from "@/lib/finance/money";
 import { resolvePeriod } from "@/lib/period";
 import { PageHeader } from "@/components/shared/page-header";
+import { HELP } from "@/components/shared/page-help";
 import { StatCard } from "@/components/shared/stat-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarList, TrendChart } from "@/components/charts/charts";
@@ -39,7 +40,7 @@ export default async function ExpensesPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHeader title="Expenses" description="Understand where your money goes." actions={<AddTransactionButtons only="expense" />} />
+      <PageHeader help={HELP.expenses} title="Expenses" description="Understand where your money goes." actions={<AddTransactionButtons only="expense" />} />
       <PeriodNav period={p.period} label={p.label} prevDate={p.prevDate} nextDate={p.nextDate} from={p.range.from} to={p.range.to} />
       <section className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6" aria-label="Spending statistics">
         <StatCard label="Total spending" value={m(cur.totalMinor)} icon={Receipt} change={changePct(cur.totalMinor, before.totalMinor)} changeGood="down" hint="vs previous period" highlight />

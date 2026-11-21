@@ -34,7 +34,7 @@ async function register(page: Page, u: typeof A) {
 // Stored as host-only cookies (url, not domain) so server-set cookies replace them.
 let sessionA: Array<{ name: string; value: string; url: string }> = [];
 
-const card = (page: Page, label: string) => page.locator("div.rounded-lg", { has: page.getByText(label, { exact: true }) }).first();
+const card = (page: Page, label: string) => page.locator("[data-card]", { has: page.getByText(label, { exact: true }) }).first();
 
 async function addTx(page: Page, kind: "income" | "expense", title: string, amount: string, category?: string) {
   await page.getByRole("toolbar", { name: "Quick actions" }).getByRole("button", { name: kind === "income" ? "Add income" : "Add expense" }).click();
@@ -130,7 +130,7 @@ test.describe("signed-in user", () => {
     await dlg.getByLabel("Existing balance").fill("1000");
     await dlg.getByRole("button", { name: "Create account" }).click();
     await expect(dlg).toBeHidden();
-    const emergency = page.locator("div.rounded-lg", { has: page.getByText("Emergency fund", { exact: true }) }).first();
+    const emergency = page.locator("[data-card]", { has: page.getByText("Emergency fund", { exact: true }) }).first();
     await emergency.getByRole("button", { name: "Add" }).click();
     dlg = page.getByRole("dialog");
     await dlg.getByLabel("Amount").fill("10000");
@@ -151,7 +151,7 @@ test.describe("signed-in user", () => {
 
   test("withdrawals beyond the balance are refused", async ({ page }) => {
     await page.goto("/savings");
-    const vac = page.locator("div.rounded-lg", { has: page.getByText("Vacation", { exact: true }) }).first();
+    const vac = page.locator("[data-card]", { has: page.getByText("Vacation", { exact: true }) }).first();
     await vac.getByRole("button", { name: "Withdraw" }).click();
     const dlg = page.getByRole("dialog");
     await dlg.getByLabel("Amount").fill("999999");
@@ -255,7 +255,7 @@ test.describe("signed-in user", () => {
     await page.goto("/dashboard");
     await expect(page.getByText("Safe to spend")).toBeVisible();
     await expect(page.getByText(/\/ day/)).toBeVisible();
-    await expect(page.getByText("Upcoming in the next 30 days")).toBeVisible();
+    await expect(page.getByText("Coming up in the next 30 days")).toBeVisible();
     // The test loan has no next-EMI date, so the list shows its empty state.
     await expect(page.getByText(/Nothing scheduled|EMI|Salary|Rent/).first()).toBeVisible();
   });

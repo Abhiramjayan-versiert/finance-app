@@ -8,6 +8,7 @@ import { changePct } from "@/lib/finance/analytics";
 import { formatMoney } from "@/lib/finance/money";
 import { monthLabel } from "@/lib/finance/dates";
 import { PageHeader } from "@/components/shared/page-header";
+import { HELP } from "@/components/shared/page-help";
 import { StatCard } from "@/components/shared/stat-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarList, LineTrend } from "@/components/charts/charts";
@@ -28,7 +29,7 @@ export default async function NetWorthPage() {
 
   return (
     <>
-      <PageHeader title="Net Worth" description="Net worth = total assets − total liabilities. Each pool of money is counted exactly once." actions={<NetWorthToolbar />} />
+      <PageHeader help={HELP.networth} title="Net Worth" description="Net worth = total assets − total liabilities. Each pool of money is counted exactly once." actions={<NetWorthToolbar />} />
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Current net worth" value={m(nw.netWorthMinor)} icon={Landmark} highlight />
         <StatCard label="Previous month" value={prev ? m(prev.net_worth_minor) : "—"} icon={Scale} hint={prev ? monthLabel(prev.snapshot_month.slice(0, 7)) : "No snapshot yet"} />

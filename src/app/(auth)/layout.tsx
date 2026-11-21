@@ -11,7 +11,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
     if (u?.emailVerified) redirect("/dashboard");
   }
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    <div className="flex min-h-dvh flex-col">
       <header className="flex h-16 items-center px-4 sm:px-8">
         <Logo />
       </header>

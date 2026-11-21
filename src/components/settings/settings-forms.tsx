@@ -130,7 +130,7 @@ function CategoryForm({ kind, initial, parents, onDone }: { kind: "income" | "ex
           {parents.filter((p) => p.id !== initial?.id).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </SelectField>
       ) : null}
-      <div className="space-y-1.5"><label htmlFor="color" className="text-sm font-medium">Colour</label><input id="color" name="color" type="color" defaultValue={initial?.color ?? "#A0A6AD"} className="h-10 w-20 cursor-pointer rounded-md border border-border bg-background-2" /></div>
+      <div className="space-y-1.5"><label htmlFor="color" className="text-sm font-medium">Colour</label><input id="color" name="color" type="color" defaultValue={initial?.color ?? "#A0A6AD"} className="h-10 w-20 cursor-pointer rounded-xl border border-border bg-background-2" /></div>
       <div className="flex justify-end"><SubmitButton>Save category</SubmitButton></div>
     </ActionForm>
   );
@@ -147,7 +147,7 @@ export function CategoryManager() {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="inline-flex rounded-md border border-border p-1">
+        <div className="inline-flex rounded-xl border border-border p-1">
           {(["expense", "income"] as const).map((k) => <button key={k} onClick={() => setKind(k)} className={`rounded-sm px-3 py-1 text-xs capitalize ${kind === k ? "bg-card-2 font-medium" : "text-muted"}`}>{k}</button>)}
         </div>
         <Button size="sm" onClick={() => setEditing("new")}><Plus /> Add category</Button>

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { MoreVertical, Pencil, Plus, Trash2, Wallet } from "lucide-react";
-import { ActionForm, CheckboxField, FormRow, MoneyField, SelectField, SubmitButton, TextAreaField, TextField, type FormAction } from "@/components/forms/action-form";
+import { ActionForm, MoreOptions, CheckboxField, FormRow, MoneyField, SelectField, SubmitButton, TextAreaField, TextField, type FormAction } from "@/components/forms/action-form";
 import { useWorkspace } from "@/components/providers/workspace";
 import { useAction } from "@/components/forms/use-action";
 import { Button } from "@/components/ui/button";
@@ -56,8 +56,10 @@ function DebtForm({ initial, onDone }: { initial?: DebtLite; onDone: () => void 
         <TextField label="Loan end date" name="endDate" type="date" defaultValue={initial?.end_date ?? ""} />
         <TextField label="Next EMI due" name="nextDueDate" type="date" defaultValue={initial?.next_due_date ?? ""} hint="For reminders" />
       </FormRow>
-      <TextField label="Lender" name="lender" defaultValue={initial?.lender ?? ""} placeholder="Optional" />
-      <TextAreaField label="Notes" name="notes" defaultValue={initial?.notes ?? ""} rows={2} />
+      <MoreOptions summary="lender, notes" defaultOpen={!!initial}>
+        <TextField label="Lender" name="lender" defaultValue={initial?.lender ?? ""} placeholder="Optional" />
+        <TextAreaField label="Notes" name="notes" defaultValue={initial?.notes ?? ""} rows={2} />
+      </MoreOptions>
       <div className="flex justify-end"><SubmitButton>{initial ? "Save" : "Add debt"}</SubmitButton></div>
     </ActionForm>
   );
@@ -175,14 +177,14 @@ function RepaymentPlan({ debt }: { debt: DebtLite }) {
       </div>
       {result ? (
         result.base.neverPaysOff ? (
-          <p className="rounded-md bg-danger/10 p-3 text-sm text-danger">This payment doesn&apos;t cover the interest — the balance would never reduce.</p>
+          <p className="rounded-xl bg-danger/10 p-3 text-sm text-danger">This payment doesn&apos;t cover the interest — the balance would never reduce.</p>
         ) : (
           <>
             <div className="grid gap-3 text-sm sm:grid-cols-2">
-              <div className="rounded-md bg-card-2 p-3"><p className="text-xs text-muted">Current plan</p><p className="font-semibold">{result.base.periods} payments · ends {result.base.payoffDate ? formatDisplayDate(result.base.payoffDate, "MMM yyyy") : "—"}</p><p className="text-xs text-muted">Total interest {m(result.base.totalInterestMinor)}</p></div>
-              <div className="rounded-md bg-accent-soft p-3"><p className="text-xs text-muted">With extra payment</p><p className="font-semibold">{result.faster.periods} payments · ends {result.faster.payoffDate ? formatDisplayDate(result.faster.payoffDate, "MMM yyyy") : "—"}</p><p className="text-xs text-accent">Saves {m(result.interestSavedMinor)} interest · {result.periodsSaved} fewer payments</p></div>
+              <div className="rounded-xl bg-card-2 p-3"><p className="text-xs text-muted">Current plan</p><p className="font-semibold">{result.base.periods} payments · ends {result.base.payoffDate ? formatDisplayDate(result.base.payoffDate, "MMM yyyy") : "—"}</p><p className="text-xs text-muted">Total interest {m(result.base.totalInterestMinor)}</p></div>
+              <div className="rounded-xl bg-accent-soft p-3"><p className="text-xs text-muted">With extra payment</p><p className="font-semibold">{result.faster.periods} payments · ends {result.faster.payoffDate ? formatDisplayDate(result.faster.payoffDate, "MMM yyyy") : "—"}</p><p className="text-xs text-accent">Saves {m(result.interestSavedMinor)} interest · {result.periodsSaved} fewer payments</p></div>
             </div>
-            <div className="max-h-64 overflow-y-auto rounded-md border border-border">
+            <div className="max-h-64 overflow-y-auto rounded-xl border border-border">
               <table className="w-full text-xs">
                 <thead className="sticky top-0 bg-background-2 text-muted"><tr><th className="p-2 text-left">#</th><th className="p-2 text-left">Date</th><th className="p-2 text-right">Payment</th><th className="p-2 text-right">Interest</th><th className="p-2 text-right">Principal</th><th className="p-2 text-right">Balance</th></tr></thead>
                 <tbody>

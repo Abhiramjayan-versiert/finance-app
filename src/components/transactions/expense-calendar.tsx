@@ -42,7 +42,7 @@ export function ExpenseCalendar({ month, byDay, selected }: { month: string; byD
               aria-selected={selected === d}
               aria-label={`${d}: ${formatMoney(v, ws.currency, { locale: ws.locale })}`}
               title={`${d}: ${formatMoney(v, ws.currency, { locale: ws.locale })}`}
-              className={cn("relative flex aspect-square flex-col items-center justify-center rounded-md border text-[11px] transition-colors", selected === d ? "border-accent" : "border-transparent hover:border-border-strong", d === ws.today && "font-bold", future && "opacity-40")}
+              className={cn("relative flex aspect-square flex-col items-center justify-center rounded-xl border text-[11px] transition-colors", selected === d ? "border-accent" : "border-transparent hover:border-border-strong", d === ws.today && "font-bold", future && "opacity-40")}
               style={{ background: v ? `color-mix(in srgb, var(--accent) ${Math.round(intensity * 100)}%, transparent)` : "var(--card-2)" }}
             >
               <span className={cn(intensity > 0.55 && "text-accent-foreground")}>{Number(d.slice(8))}</span>

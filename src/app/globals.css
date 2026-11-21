@@ -3,23 +3,38 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* =============================================================================
+   FINANCE OS — "Liquid glass" design system
+   Frosted translucent surfaces over a soft, slowly drifting colour field.
+   Surfaces are semi-transparent; text colours are opaque and contrast-checked.
+   ============================================================================= */
+
 /* Light theme */
 :root {
-  --background: #F6F7F8;
-  --background-2: #FFFFFF;
-  --card: #FFFFFF;
-  --card-2: #F1F3F5;
-  --foreground: #0B0D0F;
-  --muted: #5B636B;
-  --border: #E3E6EA;
-  --border-strong: #CED3D9;
-  --accent: #5C8F00;          /* lime tuned for contrast on light backgrounds */
-  --accent-soft: #EEF8DA;
-  --accent-foreground: #FFFFFF;
-  --success: #1F9D63;
-  --warning: #B7791F;
-  --danger: #D64545;
-  --ring: #5C8F00;
+  --background: #eef2f8;
+  --background-2: rgba(255, 255, 255, 0.62); /* inputs, sidebar, inner wells */
+  --popover: rgba(250, 251, 255, 0.86);     /* dialogs, menus, sheets */
+  --popover-solid: #fbfcff;                  /* native <option> lists */
+  --card: rgba(255, 255, 255, 0.55);
+  --card-2: rgba(15, 23, 42, 0.045);         /* hover / inset fills */
+  --foreground: #101828;
+  --muted: #586174;
+  --border: rgba(15, 23, 42, 0.09);
+  --border-strong: rgba(15, 23, 42, 0.16);
+  --glass-edge: rgba(255, 255, 255, 0.75);
+  --glass-highlight: rgba(255, 255, 255, 0.9);
+  --glass-shadow: rgba(31, 45, 80, 0.10);
+  --accent: #3a66e0;
+  --accent-soft: rgba(58, 102, 224, 0.11);
+  --accent-foreground: #ffffff;
+  --success: #138a5c;
+  --warning: #a86a12;
+  --danger: #d14343;
+  --ring: #3a66e0;
+  --blob-1: #b9d2ff;
+  --blob-2: #e3d4ff;
+  --blob-3: #c6f0e3;
+  --blob-4: #ffe0cf;
   /* Validated categorical slots (dataviz reference palette), fixed order */
   --series-1: #2a78d6;
   --series-2: #eb6834;
@@ -27,40 +42,50 @@
   --series-4: #eda100;
   --series-5: #e87ba4;
   --series-6: #008300;
-  --chart-grid: #E3E6EA;
+  --chart-grid: rgba(15, 23, 42, 0.08);
   color-scheme: light;
 }
 
-/* Dark theme (default) — palette from the FINANCE OS brief */
+/* Dark theme (default) */
 .dark {
-  --background: #0B0D0F;
-  --background-2: #14171A;
-  --card: #1B1F23;
-  --card-2: #22272C;
-  --foreground: #FFFFFF;
-  --muted: #A0A6AD;
-  --border: #262B31;
-  --border-strong: #343A41;
-  --accent: #B7F34A;
-  --accent-soft: rgba(183, 243, 74, 0.12);
-  --accent-foreground: #0B0D0F;
-  --success: #39C982;
-  --warning: #F2B84B;
-  --danger: #F06B6B;
-  --ring: #B7F34A;
+  --background: #0a0f1d;
+  --background-2: rgba(255, 255, 255, 0.055);
+  --popover: rgba(22, 28, 46, 0.86);
+  --popover-solid: #161c2e;
+  --card: rgba(255, 255, 255, 0.06);
+  --card-2: rgba(255, 255, 255, 0.07);
+  --foreground: #f2f5fb;
+  --muted: #a1abbf;
+  --border: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --glass-edge: rgba(255, 255, 255, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.14);
+  --glass-shadow: rgba(0, 0, 0, 0.35);
+  --accent: #8fb2ff;
+  --accent-soft: rgba(143, 178, 255, 0.14);
+  --accent-foreground: #0a0f1d;
+  --success: #5fd8a2;
+  --warning: #f3c167;
+  --danger: #ff8a8a;
+  --ring: #8fb2ff;
+  --blob-1: #1f3a7a;
+  --blob-2: #3b2a6e;
+  --blob-3: #0f4a44;
+  --blob-4: #5a2f3a;
   --series-1: #3987e5;
   --series-2: #d95926;
   --series-3: #199e70;
   --series-4: #c98500;
   --series-5: #d55181;
   --series-6: #008300;
-  --chart-grid: #262B31;
+  --chart-grid: rgba(255, 255, 255, 0.08);
   color-scheme: dark;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-background-2: var(--background-2);
+  --color-popover: var(--popover);
   --color-card: var(--card);
   --color-card-2: var(--card-2);
   --color-foreground: var(--foreground);
@@ -74,12 +99,13 @@
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-ring: var(--ring);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --radius-sm: 6px;
-  --radius-md: 8px;
+  --radius-md: 10px;
   --radius-lg: 12px;
-  --radius-xl: 16px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
 }
 
 @layer base {
@@ -94,13 +120,38 @@
     color: var(--foreground);
     font-feature-settings: "cv11", "ss01";
     -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.005em;
+    position: relative;
+    isolation: isolate;
+  }
+  /* Soft colour field behind the glass. Fixed, decorative, never interactive. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: -20vmax;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(38vmax 38vmax at 12% 18%, var(--blob-1), transparent 70%),
+      radial-gradient(34vmax 34vmax at 88% 12%, var(--blob-2), transparent 70%),
+      radial-gradient(40vmax 40vmax at 78% 88%, var(--blob-3), transparent 70%),
+      radial-gradient(30vmax 30vmax at 18% 92%, var(--blob-4), transparent 70%);
+    filter: blur(40px) saturate(115%);
+    opacity: 0.9;
+    animation: fos-drift 40s ease-in-out infinite alternate;
+  }
+  .dark body::before {
+    opacity: 0.55;
   }
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
-  /* Native dropdown lists are drawn by the OS; give options explicit colours
-     so they never render light-on-light or dark-on-dark (Windows Chrome/Brave/Edge). */
+  ::selection {
+    background: var(--accent-soft);
+  }
+  /* Native dropdown lists are drawn by the OS; give options explicit, opaque
+     colours so they never render light-on-light or dark-on-dark. */
   select {
     color-scheme: light;
   }
@@ -109,7 +160,7 @@
   }
   select option,
   select optgroup {
-    background-color: var(--background-2);
+    background-color: var(--popover-solid);
     color: var(--foreground);
   }
   select option:disabled {
@@ -120,12 +171,44 @@
     -webkit-appearance: none;
     margin: 0;
   }
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: var(--date-icon-filter, none);
-  }
   .dark input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(0.8);
   }
+}
+
+@keyframes fos-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2vmax, -1.5vmax, 0) scale(1.04);
+  }
+  100% {
+    transform: translate3d(-1.5vmax, 1vmax, 0) scale(1.02);
+  }
+}
+
+/* Frosted glass surface: translucent fill, blur, hairline edge, top highlight. */
+@utility glass {
+  background-color: var(--card);
+  -webkit-backdrop-filter: blur(22px) saturate(170%);
+  backdrop-filter: blur(22px) saturate(170%);
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 12px 32px -12px var(--glass-shadow);
+}
+
+/* Stronger glass for overlays (menus, dialogs, sheets) so text stays crisp. */
+@utility glass-strong {
+  background-color: var(--popover);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid var(--glass-edge);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 24px 64px -16px rgba(0, 0, 0, 0.35);
 }
 
 @utility tabular {
@@ -143,11 +226,34 @@
   }
 }
 
+/* Browsers without backdrop-filter get a more opaque fill instead. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --card: rgba(255, 255, 255, 0.9);
+    --popover: #fbfcff;
+  }
+  .dark {
+    --card: rgba(24, 30, 48, 0.92);
+    --popover: #161c2e;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --card: rgba(255, 255, 255, 0.94);
+    --popover: #fbfcff;
+  }
+  .dark {
+    --card: rgba(24, 30, 48, 0.95);
+    --popover: #161c2e;
   }
 }

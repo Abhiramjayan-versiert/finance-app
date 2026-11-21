@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Paperclip, X } from "lucide-react";
-import { ActionForm, CheckboxField, FormRow, MoneyField, SelectField, SubmitButton, TextAreaField, TextField, type ClientActionResult, type FormAction } from "@/components/forms/action-form";
+import { ActionForm, MoreOptions, CheckboxField, FormRow, MoneyField, SelectField, SubmitButton, TextAreaField, TextField, type ClientActionResult, type FormAction } from "@/components/forms/action-form";
 import { useWorkspace } from "@/components/providers/workspace";
 import { Button } from "@/components/ui/button";
 import { PAYMENT_METHODS, FREQUENCIES } from "@/lib/labels";
@@ -79,7 +79,7 @@ export function TransactionForm({ initial, template, defaultType = "expense", on
       {receiptPath ? <input type="hidden" name="receiptPath" value={receiptPath} /> : null}
 
       {!initial ? (
-        <div className="grid grid-cols-2 gap-1 rounded-md border border-border bg-background p-1" role="radiogroup" aria-label="Transaction type">
+        <div className="grid grid-cols-2 gap-1 rounded-2xl bg-card-2 p-1" role="radiogroup" aria-label="Transaction type">
           {(["expense", "income"] as const).map((t) => (
             <button key={t} type="button" role="radio" aria-checked={type === t} onClick={() => setType(t)} className={cn("h-8 rounded-sm text-sm font-medium capitalize", type === t ? (t === "expense" ? "bg-card-2 text-foreground" : "bg-success/15 text-success") : "text-muted")}>
               {t}
@@ -93,38 +93,43 @@ export function TransactionForm({ initial, template, defaultType = "expense", on
         <MoneyField label="Amount" name="amount" currencySymbol={ws.currencySymbol} defaultValue={src ? fromMinor(src.amount_minor, ws.currency) : ""} required />
       </FormRow>
 
-      {type === "expense" ? (
-        <FormRow>
+      <FormRow>
+        {type === "expense" ? (
           <SelectField label="Category" name="categoryId" value={parentId} onChange={(e) => setParentId(e.target.value)}>
             <option value="">Uncategorised</option>
             {expenseParents.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </SelectField>
-          <SelectField label="Subcategory" name="subcategoryId" defaultValue={initialCat?.parent_id ? initialCat.id : ""} disabled={!subs.length} hint={!subs.length ? "Create subcategories in Settings" : undefined}>
-            <option value="">None</option>
-            {subs.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </SelectField>
-        </FormRow>
-      ) : (
-        <FormRow>
+        ) : (
           <SelectField label="Income category" name="categoryId" defaultValue={src?.income_category_id ?? ""}>
             <option value="">Uncategorised</option>
             {ws.incomeCategories.filter((c) => !c.archived).map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </SelectField>
+        )}
+        <TextField label={recurring ? "Start date" : type === "income" ? "Date received" : "Date"} name="occurredOn" type="date" defaultValue={initial?.occurred_on ?? ws.today} required />
+      </FormRow>
+
+      <MoreOptions
+        summary={type === "expense" ? "subcategory, payment method, notes, repeat, receipt" : "received or expected, payment method, notes, repeat"}
+        defaultOpen={!!initial}
+      >
+      <FormRow>
+        {type === "expense" ? (
+          <SelectField label="Subcategory" name="subcategoryId" defaultValue={initialCat?.parent_id ? initialCat.id : ""} disabled={!subs.length} hint={!subs.length ? "Create subcategories in Settings" : undefined}>
+            <option value="">None</option>
+            {subs.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </SelectField>
+        ) : (
           <SelectField label="Status" name="status" defaultValue={src?.status ?? "completed"} hint="Expected income is never counted as cash received.">
             <option value="completed">Received</option>
             <option value="expected">Expected (future)</option>
           </SelectField>
-        </FormRow>
-      )}
-
-      <FormRow>
-        <TextField label={recurring ? "Start date" : type === "income" ? "Date received" : "Date"} name="occurredOn" type="date" defaultValue={initial?.occurred_on ?? ws.today} required />
+        )}
         <SelectField label="Payment method" name="paymentMethod" defaultValue={src?.payment_method ?? ws.defaultPaymentMethod}>
           {PAYMENT_METHODS.map((p) => (
             <option key={p.value} value={p.value}>{p.label}</option>
@@ -155,7 +160,7 @@ export function TransactionForm({ initial, template, defaultType = "expense", on
       {type === "expense" ? (
         <div className="flex items-center gap-2">
           {receiptPath ? (
-            <span className="inline-flex items-center gap-2 rounded-md border border-border px-2 py-1 text-xs">
+            <span className="inline-flex items-center gap-2 rounded-xl border border-border px-2 py-1 text-xs">
               <Paperclip className="size-3" /> Receipt attached
               <button type="button" onClick={() => setReceiptPath(null)} aria-label="Remove receipt"><X className="size-3" /></button>
             </span>
@@ -170,6 +175,7 @@ export function TransactionForm({ initial, template, defaultType = "expense", on
           <span className="text-[11px] text-muted">Optional · photo or PDF (PDF up to 700 KB)</span>
         </div>
       ) : null}
+      </MoreOptions>
 
       <div className="flex justify-end pt-1">
         <SubmitButton disabled={uploading}>{initial ? "Save changes" : type === "income" ? "Add income" : "Add expense"}</SubmitButton>

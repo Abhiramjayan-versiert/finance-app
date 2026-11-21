@@ -6,6 +6,7 @@ import { budgetAppliesTo, computeBudgetUsage, spentForBudget } from "@/lib/finan
 import { addMonthsISO, lastMonths, monthLabel, periodRange } from "@/lib/finance/dates";
 import { formatMoney } from "@/lib/finance/money";
 import { PageHeader } from "@/components/shared/page-header";
+import { HELP } from "@/components/shared/page-help";
 import { EmptyState } from "@/components/shared/states";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TD, TH, THead, TR } from "@/components/ui/table";
@@ -39,7 +40,7 @@ export default async function BudgetsPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <PageHeader title="Budgets" description="Set monthly and yearly limits and get warned before you overspend." actions={<NewBudgetButton />} />
+      <PageHeader help={HELP.budgets} title="Budgets" description="Set monthly and yearly limits and get warned before you overspend." actions={<NewBudgetButton />} />
       <PeriodNav period="month" label={monthLabel(anchor.slice(0, 7))} prevDate={addMonthsISO(anchor, -1)} nextDate={addMonthsISO(anchor, 1)} from={month.from} to={month.to} showTabs={false} />
       {budgets.length === 0 ? (
         <EmptyState className="mt-4" icon={Gauge} title="No budgets yet" description="Example: overall ₹30,000/month with Food ₹6,000, Transport ₹3,000, Shopping ₹5,000 and Entertainment ₹2,000." action={<NewBudgetButton />} />

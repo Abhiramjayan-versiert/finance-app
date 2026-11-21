@@ -44,7 +44,7 @@ function Calc({ id, title, description, inputs, results }: { id: string; title: 
       <CardHeader><div><CardTitle>{title}</CardTitle><CardDescription>{description}</CardDescription></div></CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-3">{inputs}</div>
-        <div className="mt-4 rounded-md bg-card-2 px-3 py-2">{results}</div>
+        <div className="mt-4 rounded-xl bg-card-2 px-3 py-2">{results}</div>
       </CardContent>
     </Card>
   );

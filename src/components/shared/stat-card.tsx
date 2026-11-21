@@ -24,12 +24,12 @@ export function StatCard({
 }) {
   const good = change == null ? null : changeGood === "up" ? change >= 0 : change <= 0;
   return (
-    <Card className={cn("p-4", highlight && "border-accent/40", className)}>
+    <Card className={cn("p-4 sm:p-5", highlight && "ring-1 ring-accent/30", className)}>
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-medium leading-snug text-muted">{label}</p>
-        {Icon ? <Icon className={cn("size-4 shrink-0", highlight ? "text-accent" : "text-muted")} /> : null}
+        {Icon ? <span className={cn("flex size-7 shrink-0 items-center justify-center rounded-2xl", highlight ? "bg-accent-soft text-accent" : "bg-card-2 text-muted")}><Icon className="size-3.5" /></span> : null}
       </div>
-      <p className={cn("mt-2 truncate text-lg font-semibold tabular sm:text-xl", highlight && "text-accent")} title={value}>
+      <p className={cn("mt-2 truncate text-xl font-semibold tracking-tight tabular sm:text-2xl", highlight && "text-accent")} title={value}>
         {value}
       </p>
       <div className="mt-1 flex items-start gap-1.5 text-xs leading-snug">

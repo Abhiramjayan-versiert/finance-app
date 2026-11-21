@@ -28,13 +28,13 @@ export function BottomNav() {
   };
   return (
     <>
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background-2/95 backdrop-blur safe-bottom lg:hidden" aria-label="Primary">
-        <div className="mx-auto flex max-w-lg items-stretch">
+      <nav className="fixed inset-x-0 bottom-0 z-40 px-3 pb-2 safe-bottom lg:hidden" aria-label="Primary">
+        <div className="glass-strong mx-auto flex max-w-lg items-stretch rounded-[22px] px-1">
           {left.map(item)}
           <div className="flex flex-1 items-center justify-center">
             <QuickAdd
               trigger={
-                <button className="-mt-5 flex size-12 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-lg ring-4 ring-background" aria-label="Add transaction">
+                <button className="-mt-4 flex size-13 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-[0_8px_24px_-6px_var(--accent)] ring-4 ring-background/70" aria-label="Add something">
                   <Plus className="size-6" />
                 </button>
               }
@@ -49,11 +49,14 @@ export function BottomNav() {
       </nav>
       <Sheet open={more} onOpenChange={setMore}>
         <SheetContent title="All sections" side="bottom">
-          <div className="grid grid-cols-3 gap-2 p-4">
+          <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-3">
             {secondary.map((n) => (
-              <Link key={n.href} href={n.href} onClick={() => setMore(false)} className={cn("flex flex-col items-center gap-2 rounded-lg border border-border p-3 text-center text-xs", isActive(pathname, n.href) ? "bg-card-2 text-foreground" : "text-muted")}>
-                <n.icon className="size-5" />
-                {n.label}
+              <Link key={n.href} href={n.href} onClick={() => setMore(false)} className={cn("glass flex items-center gap-3 rounded-2xl p-3 text-left", isActive(pathname, n.href) ? "text-foreground" : "text-muted")}>
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-card-2"><n.icon className="size-4.5" /></span>
+                <span className="min-w-0">
+                  <span className="block truncate text-[13px] font-medium text-foreground">{n.label}</span>
+                  <span className="block truncate text-[11px]">{n.hint}</span>
+                </span>
               </Link>
             ))}
           </div>

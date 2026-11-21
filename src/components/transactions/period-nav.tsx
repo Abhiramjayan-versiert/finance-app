@@ -26,7 +26,7 @@ export function PeriodNav({ period, label, prevDate, nextDate, from, to, showTab
   };
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {showTabs ? <Tabs value={period} onValueChange={(v) => go({ period: v })}>
+      {showTabs ? <Tabs className="min-w-0 max-w-full" value={period} onValueChange={(v) => go({ period: v })}>
         <TabsList>
           {PERIODS.map((p) => (
             <TabsTrigger key={p.v} value={p.v}>{p.l}</TabsTrigger>

@@ -6,6 +6,7 @@ import { monthlySeries, totals } from "@/lib/finance/analytics";
 import { formatMoney } from "@/lib/finance/money";
 import { monthLabel, periodRange, previousRange, daysInRange } from "@/lib/finance/dates";
 import { PageHeader } from "@/components/shared/page-header";
+import { HELP } from "@/components/shared/page-help";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TD, TH, THead, TR } from "@/components/ui/table";
 import { EmptyState } from "@/components/shared/states";
@@ -37,7 +38,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
   return (
     <>
-      <PageHeader title="Reports" description="Built from your actual records. Export to CSV, Excel or PDF." actions={<ExportButtons query={query} />} />
+      <PageHeader help={HELP.reports} title="Reports" description="Built from your actual records. Export to CSV, Excel or PDF." actions={<ExportButtons query={query} />} />
       <Card><CardContent className="pt-4 sm:pt-4"><ReportControls types={REPORT_TYPES} report={report} from={range.from} to={range.to} category={category} /></CardContent></Card>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">

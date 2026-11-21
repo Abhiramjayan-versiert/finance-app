@@ -7,6 +7,7 @@ import { amortize } from "@/lib/finance/debt";
 import { formatMoney } from "@/lib/finance/money";
 import { formatDisplayDate } from "@/lib/finance/dates";
 import { PageHeader } from "@/components/shared/page-header";
+import { HELP } from "@/components/shared/page-help";
 import { StatCard } from "@/components/shared/stat-card";
 import { EmptyState, EstimateNote } from "@/components/shared/states";
 import { DebtCard, NewDebtButton } from "@/components/debts/debt-ui";
@@ -27,7 +28,7 @@ export default async function DebtsPage({ searchParams }: { searchParams: Promis
 
   return (
     <>
-      <PageHeader title="Debt & Loans" description="Track EMIs, repayments and your path to being debt-free." actions={<NewDebtButton defaultOpen={sp.new === "1"} />} />
+      <PageHeader help={HELP.debts} title="Debt & Loans" description="Track EMIs, repayments and your path to being debt-free." actions={<NewDebtButton defaultOpen={sp.new === "1"} />} />
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Total outstanding" value={m(outstanding)} icon={CreditCard} highlight />
         <StatCard label="Monthly EMIs" value={m(emi)} icon={Wallet} />

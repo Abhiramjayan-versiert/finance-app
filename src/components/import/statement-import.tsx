@@ -180,7 +180,7 @@ export function StatementImport() {
             </CardHeader>
             <CardContent>
               {result ? (
-                <div className="mb-4 flex flex-wrap items-center gap-3 rounded-md bg-success/10 p-3 text-sm">
+                <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl bg-success/10 p-3 text-sm">
                   <CheckCircle2 className="size-4 text-success" />
                   <span>{result.created} imported · {result.duplicates} already existed (skipped){result.failed ? ` · ${result.failed} failed` : ""}</span>
                   <Link href="/transactions" className="ml-auto text-accent">View transactions →</Link>

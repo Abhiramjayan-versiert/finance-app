@@ -6,6 +6,7 @@ import { changePct, incomeBySource, monthlySeries, totals } from "@/lib/finance/
 import { lastMonths, monthLabel, periodRange, previousRange } from "@/lib/finance/dates";
 import { formatMoney } from "@/lib/finance/money";
 import { PageHeader } from "@/components/shared/page-header";
+import { HELP } from "@/components/shared/page-help";
 import { StatCard } from "@/components/shared/stat-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarList, TrendChart } from "@/components/charts/charts";
@@ -35,7 +36,7 @@ export default async function IncomePage({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <PageHeader title="Income" description="Track income from every source. Expected income is shown separately and never counted as cash received." actions={<AddTransactionButtons only="income" />} />
+      <PageHeader help={HELP.income} title="Income" description="Track income from every source. Expected income is shown separately and never counted as cash received." actions={<AddTransactionButtons only="income" />} />
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="Received this month" value={m(cm.incomeMinor)} icon={Wallet} change={changePct(cm.incomeMinor, pm.incomeMinor)} hint="vs last month" highlight />
         <StatCard label={`Received in ${ws.today.slice(0, 4)}`} value={m(yr.incomeMinor)} icon={TrendingUp} />

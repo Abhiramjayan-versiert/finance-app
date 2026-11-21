@@ -137,7 +137,7 @@ export function TextAreaField({ label, name, hint, className, ...props }: React.
 
 export function CheckboxField({ label, name, description, defaultChecked, onChange }: { label: string; name: string; description?: string; defaultChecked?: boolean; onChange?: (checked: boolean) => void }) {
   return (
-    <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border bg-background-2 p-3">
+    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-background-2 p-3">
       <input type="checkbox" name={name} defaultChecked={defaultChecked} onChange={(e) => onChange?.(e.target.checked)} className="mt-0.5 size-4 accent-[var(--accent)]" />
       <span>
         <span className="block text-sm font-medium">{label}</span>
@@ -164,4 +164,29 @@ export function SubmitButton({ children, pendingLabel = "Saving…", className, 
 
 export function FormRow({ children, className }: { children: React.ReactNode; className?: string }) {
   return <div className={cn("grid gap-4 sm:grid-cols-2", className)}>{children}</div>;
+}
+
+/**
+ * Collapses optional fields behind a "More options" toggle so forms show only
+ * what's needed. Fields inside are still submitted when collapsed, and the
+ * panel opens automatically if the server reports a validation error.
+ */
+export function MoreOptions({ children, summary, defaultOpen = false }: { children: React.ReactNode; summary?: string; defaultOpen?: boolean }) {
+  const errors = React.useContext(ErrorsContext);
+  const hasErrors = Object.keys(errors).some((k) => k !== "_form");
+  const [userOpen, setUserOpen] = React.useState(defaultOpen);
+  return (
+    <details
+      open={userOpen || hasErrors}
+      onToggle={(e) => setUserOpen(e.currentTarget.open)}
+      className="group rounded-2xl border border-border bg-card-2/40 [&_summary::-webkit-details-marker]:hidden"
+    >
+      <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-medium select-none">
+        <span className="flex size-5 items-center justify-center rounded-full bg-card-2 text-xs text-muted transition-transform group-open:rotate-45">+</span>
+        More options
+        {summary ? <span className="truncate text-xs font-normal text-muted">· {summary}</span> : null}
+      </summary>
+      <div className="space-y-4 px-4 pb-4 pt-1">{children}</div>
+    </details>
+  );
 }
