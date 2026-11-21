@@ -34,10 +34,10 @@ export function PeriodNav({ period, label, prevDate, nextDate, from, to, showTab
         </TabsList>
       </Tabs> : null}
       {period === "custom" ? (
-        <div className="flex items-center gap-2">
-          <Input type="date" className="w-auto" aria-label="From" defaultValue={from} onChange={(e) => e.target.value && go({ from: e.target.value })} />
+        <div className="flex w-full min-w-0 items-center gap-2 sm:w-auto">
+          <Input type="date" className="min-w-0 flex-1 sm:w-auto sm:flex-none" aria-label="From" defaultValue={from} onChange={(e) => e.target.value && go({ from: e.target.value })} />
           <span className="text-muted">–</span>
-          <Input type="date" className="w-auto" aria-label="To" defaultValue={to} onChange={(e) => e.target.value && go({ to: e.target.value })} />
+          <Input type="date" className="min-w-0 flex-1 sm:w-auto sm:flex-none" aria-label="To" defaultValue={to} onChange={(e) => e.target.value && go({ to: e.target.value })} />
         </div>
       ) : (
         <div className="flex items-center gap-1">

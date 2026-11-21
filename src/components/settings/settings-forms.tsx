@@ -146,9 +146,9 @@ export function CategoryManager() {
   const ordered = kind === "expense" ? parents.flatMap((p) => [p, ...ws.expenseCategories.filter((c) => c.parent_id === p.id)]).concat(ws.expenseCategories.filter((c) => !c.parent_id && c.archived)) : list;
   return (
     <div>
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="inline-flex rounded-xl border border-border p-1">
-          {(["expense", "income"] as const).map((k) => <button key={k} onClick={() => setKind(k)} className={`rounded-sm px-3 py-1 text-xs capitalize ${kind === k ? "bg-card-2 font-medium" : "text-muted"}`}>{k}</button>)}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="inline-flex rounded-full bg-card-2 p-1">
+          {(["expense", "income"] as const).map((k) => <button key={k} onClick={() => setKind(k)} className={`press rounded-full px-3.5 py-1.5 text-xs capitalize ${kind === k ? "bg-white/90 font-medium text-foreground shadow-sm dark:bg-white/15" : "text-muted"}`}>{k}</button>)}
         </div>
         <Button size="sm" onClick={() => setEditing("new")}><Plus /> Add category</Button>
       </div>

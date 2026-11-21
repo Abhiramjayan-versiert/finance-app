@@ -144,10 +144,23 @@
     isolation: isolate;
   }
   /* Neutral, softly lit backdrop for the glass to refract. Greyscale only. */
+  /* Never let anything widen the page sideways (iOS Safari counts fixed and
+     transformed elements when sizing the page, which shifts centred UI). */
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  @supports (overflow: clip) {
+    html,
+    body {
+      overflow-x: clip;
+    }
+  }
   body::before {
     content: "";
     position: fixed;
-    inset: -15vmax;
+    inset: 0;
     z-index: -1;
     pointer-events: none;
     background:
@@ -155,7 +168,22 @@
       radial-gradient(36vmax 36vmax at 85% 20%, var(--wall-2), transparent 70%),
       radial-gradient(46vmax 32vmax at 70% 92%, var(--wall-3), transparent 70%),
       radial-gradient(30vmax 30vmax at 10% 85%, var(--wall-4), transparent 70%);
+    background-size: 120% 120%;
+    background-position: 0% 0%;
     animation: fos-drift 48s ease-in-out infinite alternate;
+  }
+  /* iOS gives date inputs a fixed intrinsic width; let them shrink. */
+  input[type="date"],
+  input[type="month"],
+  input[type="time"] {
+    min-width: 0;
+    max-width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    text-align: left;
+  }
+  input[type="date"]::-webkit-date-and-time-value {
+    text-align: left;
   }
   :focus-visible {
     outline: 2px solid var(--ring);
@@ -219,13 +247,13 @@
 
 @keyframes fos-drift {
   0% {
-    transform: translate3d(0, 0, 0) scale(1);
+    background-position: 0% 0%;
   }
   50% {
-    transform: translate3d(2vmax, -1.5vmax, 0) scale(1.04);
+    background-position: 60% 40%;
   }
   100% {
-    transform: translate3d(-1.5vmax, 1vmax, 0) scale(1.02);
+    background-position: 100% 100%;
   }
 }
 

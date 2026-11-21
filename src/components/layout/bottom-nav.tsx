@@ -29,7 +29,7 @@ export function BottomNav() {
   let activeSlot = slots.findIndex((h) => h !== "+" && h !== "more" && isActive(current, h));
   if (activeSlot < 0 && (more || secondary.some((n) => isActive(current, n.href)))) activeSlot = slots.length - 1;
 
-  const cell = "press relative z-10 flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 py-2.5 text-[10.5px] leading-none";
+  const cell = "press relative z-10 flex h-full min-w-0 flex-col items-center justify-center gap-1 text-[10.5px] leading-none";
   const item = (n: (typeof NAV)[number]) => {
     const active = isActive(current, n.href);
     return (
@@ -48,12 +48,12 @@ export function BottomNav() {
   };
   return (
     <>
-      <nav className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(10px,env(safe-area-inset-bottom))] lg:hidden" aria-label="Primary">
-        <div data-lg="clear" className="glass-strong relative mx-auto flex h-[64px] max-w-lg items-stretch rounded-full p-1">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pb-[max(10px,env(safe-area-inset-bottom))] pl-[max(12px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] lg:hidden" aria-label="Primary">
+        <div data-lg="clear" className="glass-strong relative grid h-16 w-full max-w-[480px] grid-cols-6 items-stretch rounded-full p-1">
           {activeSlot >= 0 ? (
             <span
               aria-hidden
-              className="pointer-events-none absolute inset-y-1 left-1 z-0 transition-transform duration-[550ms] ease-[cubic-bezier(0.34,1.35,0.64,1)] will-change-transform"
+              className="pointer-events-none absolute bottom-1 left-1 top-1 z-0 transition-transform duration-[550ms] ease-[cubic-bezier(0.34,1.35,0.64,1)] will-change-transform"
               style={{ width: `calc((100% - 8px) / ${slotCount})`, transform: `translateX(${activeSlot * 100}%)` }}
             >
               {/* Re-keyed on every move so the lens "stretches" like liquid as it slides. */}
@@ -61,10 +61,10 @@ export function BottomNav() {
             </span>
           ) : null}
           {left.map(item)}
-          <div className="relative z-10 flex min-w-0 flex-1 basis-0 items-center justify-center">
+          <div className="relative z-10 flex h-full min-w-0 items-center justify-center">
             <QuickAdd
               trigger={
-                <button className="press flex size-12 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_8px_20px_-8px_var(--accent)]" aria-label="Add something">
+                <button className="press flex size-12 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_8px_20px_-8px_var(--accent)]" aria-label="Add something">
                   <Plus className="size-6" />
                 </button>
               }

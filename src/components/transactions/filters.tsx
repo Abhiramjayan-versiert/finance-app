@@ -25,8 +25,8 @@ export function TransactionFilters({ showType = true, kind }: { showType?: boole
   const cats = type === "income" ? ws.incomeCategories : type === "expense" ? ws.expenseCategories : [...ws.expenseCategories, ...ws.incomeCategories];
   const active = ["q", "from", "to", "type", "category", "method"].some((k) => sp.get(k));
   return (
-    <div className="flex flex-wrap items-center gap-2" aria-busy={pending}>
-      <div className="relative min-w-48 flex-1">
+    <div className="grid grid-cols-2 items-center gap-2 sm:flex sm:flex-wrap" aria-busy={pending}>
+      <div className="relative col-span-2 sm:min-w-48 sm:flex-1">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" />
         <Input
           placeholder="Search title, merchant, notes"
@@ -37,22 +37,22 @@ export function TransactionFilters({ showType = true, kind }: { showType?: boole
           onBlur={(e) => e.target.value !== (sp.get("q") ?? "") && set("q", e.target.value)}
         />
       </div>
-      <Input type="date" aria-label="From date" className="w-auto" defaultValue={sp.get("from") ?? ""} onChange={(e) => set("from", e.target.value)} />
-      <Input type="date" aria-label="To date" className="w-auto" defaultValue={sp.get("to") ?? ""} onChange={(e) => set("to", e.target.value)} />
+      <Input type="date" aria-label="From date" className="w-full sm:w-auto" defaultValue={sp.get("from") ?? ""} onChange={(e) => set("from", e.target.value)} />
+      <Input type="date" aria-label="To date" className="w-full sm:w-auto" defaultValue={sp.get("to") ?? ""} onChange={(e) => set("to", e.target.value)} />
       {showType && !kind ? (
-        <NativeSelect aria-label="Type" className="w-auto" value={sp.get("type") ?? ""} onChange={(e) => set("type", e.target.value)}>
+        <NativeSelect aria-label="Type" className="w-full sm:w-auto" value={sp.get("type") ?? ""} onChange={(e) => set("type", e.target.value)}>
           <option value="">All types</option>
           <option value="expense">Expenses</option>
           <option value="income">Income</option>
         </NativeSelect>
       ) : null}
-      <NativeSelect aria-label="Category" className="w-auto max-w-44" value={sp.get("category") ?? ""} onChange={(e) => set("category", e.target.value)}>
+      <NativeSelect aria-label="Category" className="w-full sm:w-auto sm:max-w-44" value={sp.get("category") ?? ""} onChange={(e) => set("category", e.target.value)}>
         <option value="">All categories</option>
         {cats.map((c) => (
           <option key={c.id} value={c.id}>{c.parent_id ? "— " : ""}{c.name}</option>
         ))}
       </NativeSelect>
-      <NativeSelect aria-label="Payment method" className="w-auto" value={sp.get("method") ?? ""} onChange={(e) => set("method", e.target.value)}>
+      <NativeSelect aria-label="Payment method" className="w-full sm:w-auto" value={sp.get("method") ?? ""} onChange={(e) => set("method", e.target.value)}>
         <option value="">All methods</option>
         {PAYMENT_METHODS.map((p) => (
           <option key={p.value} value={p.value}>{p.label}</option>
