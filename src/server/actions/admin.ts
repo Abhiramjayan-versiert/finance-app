@@ -1,5 +1,6 @@
 "use server";
 
+import { deleteAllPasskeys } from "@/server/passkeys";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
@@ -68,6 +69,7 @@ export async function deleteUserAction(_: unknown, fd: FormData): Promise<Action
     if (doc.email.toLowerCase() !== p.data.confirmEmail) return fail("The confirmation email does not match.", { confirmEmail: "Type the user's email exactly" });
     if ((doc.roles ?? []).includes("super_admin")) return fail("Revoke the super admin role before deleting this account.");
     await audit(actor, "user.deleted", { type: "user", id: p.data.userId }, { email: doc.email });
+    await deleteAllPasskeys(p.data.userId);
     await store.deleteTree(userPath(p.data.userId));
     await adminAuth().deleteUser(p.data.userId).catch(() => {});
     revalidatePath("/admin/users");

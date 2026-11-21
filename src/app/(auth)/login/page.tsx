@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { LoginForm } from "@/components/auth/auth-forms";
+import { PasskeySignIn } from "@/components/auth/passkeys";
 import { AuthCard } from "../auth-card";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -14,6 +15,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       footer={<>New here? <Link href="/register" className="font-medium text-accent hover:underline">Create a free account</Link></>}
     >
       <LoginForm next={sp.next} />
+      <PasskeySignIn next={sp.next} />
     </AuthCard>
   );
 }

@@ -66,7 +66,7 @@ test.describe("authentication gating", () => {
 
   test("login validates required fields", async ({ page }) => {
     await page.goto("/login");
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
     await expect(page.getByText("Enter a valid email address")).toBeVisible();
   });
 

@@ -1,5 +1,6 @@
 "use server";
 
+import { deleteAllPasskeys } from "@/server/passkeys";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -75,6 +76,7 @@ export async function deleteAccountAction(_: unknown, fd: FormData): Promise<Act
       return fail("Password is incorrect.", { password: "Password is incorrect" });
     }
     await audit({ id: null, email: null }, "user.self_deleted", { type: "user", id: ws.userId });
+    await deleteAllPasskeys(ws.userId);
     await getStore().deleteTree(userPath(ws.userId));
     await adminAuth().deleteUser(ws.userId);
     await endSession();

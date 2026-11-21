@@ -84,7 +84,7 @@ test.describe("signed-in user", () => {
     await expect(card(page, "Expenses this month")).toContainText("₹2,500");
     await expect(card(page, "Available balance")).toContainText("₹97,500");
     await expect(card(page, "Savings rate")).toContainText("97.5%");
-    await expect(page.getByText("Dinner")).toBeVisible();
+    await expect(page.getByText("Dinner").first()).toBeVisible();
   });
 
   test("budgets warn when spending passes the limit", async ({ page }) => {
@@ -284,7 +284,7 @@ test("super admin console: metrics, users, suspend, audit", async ({ page, brows
   await page.goto("/login");
   await page.getByLabel("Email").fill(A.email);
   await page.getByLabel("Password", { exact: true }).fill(A.password);
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).toHaveURL(/\/dashboard/);
   await page.goto("/admin");
   await expect(card(page, "Registered users")).toBeVisible();
@@ -298,7 +298,7 @@ test("super admin console: metrics, users, suspend, audit", async ({ page, brows
   await bPage.goto("/login");
   await bPage.getByLabel("Email").fill(B.email);
   await bPage.getByLabel("Password", { exact: true }).fill(B.password);
-  await bPage.getByRole("button", { name: "Sign in" }).click();
+  await bPage.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(bPage).toHaveURL(/\/dashboard/);
 
   await page.goto(`/admin/users?q=${encodeURIComponent(B.email)}`);
@@ -313,7 +313,7 @@ test("super admin console: metrics, users, suspend, audit", async ({ page, brows
   await bPage.goto("/login");
   await bPage.getByLabel("Email").fill(B.email);
   await bPage.getByLabel("Password", { exact: true }).fill(B.password);
-  await bPage.getByRole("button", { name: "Sign in" }).click();
+  await bPage.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(bPage.getByText("This account has been suspended").first()).toBeVisible();
   await bCtx.close();
 
@@ -340,11 +340,11 @@ test("change password signs out other sessions and the new password works", asyn
   // Old password no longer works; new one does.
   await op.getByLabel("Email").fill(A.email);
   await op.getByLabel("Password", { exact: true }).fill(A.password);
-  await op.getByRole("button", { name: "Sign in" }).click();
+  await op.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(op.getByText("Incorrect email or password").first()).toBeVisible();
   await expect(op.getByLabel("Email")).toHaveValue(A.email); // fields are kept after a failed attempt
   await op.getByLabel("Password", { exact: true }).fill("N3wPassword!");
-  await op.getByRole("button", { name: "Sign in" }).click();
+  await op.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(op).toHaveURL(/\/dashboard/);
   await other.close();
 });
