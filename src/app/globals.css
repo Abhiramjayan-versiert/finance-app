@@ -66,7 +66,7 @@
   --glass-highlight: rgba(255, 255, 255, 0.28);
   --glass-lowlight: rgba(255, 255, 255, 0.05);
   --glass-sheen: rgba(255, 255, 255, 0.10);
-  --glass-clear: rgba(20, 20, 24, 0.28);
+  --glass-clear: rgba(40, 40, 46, 0.42);
   --glass-shadow: rgba(0, 0, 0, 0.55);
   --accent: #0a7cf0;
   --accent-soft: rgba(10, 124, 240, 0.18);
@@ -201,6 +201,15 @@
   65% { opacity: 1; transform: translateY(-3px) scale(1.005); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
+@keyframes lg-squish {
+  0% { transform: scaleX(1) scaleY(1); }
+  30% { transform: scaleX(1.18) scaleY(0.9); }
+  65% { transform: scaleX(0.96) scaleY(1.04); }
+  100% { transform: scaleX(1) scaleY(1); }
+}
+@utility lg-squish {
+  animation: lg-squish 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
 @utility lg-pop {
   animation: lg-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -258,8 +267,8 @@
    underneath stays visible and visibly bends at the edges. */
 [data-lg="clear"] {
   background-color: var(--glass-clear) !important;
-  -webkit-backdrop-filter: blur(6px) saturate(180%);
-  backdrop-filter: blur(6px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  backdrop-filter: blur(12px) saturate(180%);
 }
 
 /* Springy press feedback, like iOS. */

@@ -12,7 +12,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   }
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="flex h-16 items-center px-4 sm:px-8">
+      <header className="flex min-h-16 items-center px-4 pt-[env(safe-area-inset-top)] sm:px-8">
         <Logo />
       </header>
       <main className="flex flex-1 items-start justify-center px-4 pb-16 pt-4 sm:items-center sm:pt-0">

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-30 px-3 pt-3 sm:px-6">
+      <header className="sticky top-0 z-30 px-3 pt-[max(12px,env(safe-area-inset-top))] sm:px-6">
         <div data-lg="clear" className="glass mx-auto flex h-14 max-w-6xl items-center gap-3 rounded-2xl px-3 sm:h-15 sm:gap-4 sm:px-5">
           <Logo />
           <nav className="ml-6 hidden gap-5 text-sm text-muted md:flex">

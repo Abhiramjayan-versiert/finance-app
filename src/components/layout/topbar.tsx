@@ -19,8 +19,7 @@ export function Topbar({ name, email, unread, isAdmin, announcement }: { name: s
   const { resolvedTheme, setTheme } = useTheme();
   return (
     <>
-      {announcement ? <div className="mx-3 mt-3 rounded-xl bg-accent-soft px-4 py-2 text-center text-xs text-accent sm:mx-6 lg:ml-3">{announcement}</div> : null}
-      <header className="sticky top-0 z-30 px-3 pt-3 sm:px-6 lg:pl-3">
+      <header className="sticky top-0 z-30 bg-gradient-to-b from-background via-background/85 to-transparent px-3 pb-2 pt-[max(12px,env(safe-area-inset-top))] sm:px-6 lg:bg-none lg:pl-3">
         <div data-lg="clear" className="glass flex h-14 items-center gap-2 rounded-2xl px-2.5 sm:h-15 sm:px-4">
         <Button variant="ghost" size="icon-sm" className="lg:hidden" onClick={() => setMenuOpen(true)} aria-label="Open menu">
           <Menu />
@@ -83,6 +82,7 @@ export function Topbar({ name, email, unread, isAdmin, announcement }: { name: s
         </DropdownMenu>
         </div>
       </header>
+      {announcement ? <div className="mx-3 mt-1 rounded-xl bg-accent-soft px-4 py-2 text-center text-xs text-accent sm:mx-6 lg:ml-3">{announcement}</div> : null}
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetContent title="Menu">
           <NavLinks onNavigate={() => setMenuOpen(false)} isAdmin={isAdmin} />

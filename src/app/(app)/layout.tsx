@@ -37,7 +37,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <Sidebar isAdmin={ws.isAdmin} />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar name={ws.profile.full_name} email={ws.email} unread={unread} isAdmin={ws.isAdmin} announcement={platform.announcement || undefined} />
-          <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-28 pt-5 sm:px-6 sm:pt-6 lg:pb-10">{children}</main>
+          <main className="mx-auto w-full max-w-7xl flex-1 px-4 pb-[calc(100px+env(safe-area-inset-bottom))] pt-3 sm:px-6 sm:pt-4 lg:pb-10">{children}</main>
         </div>
       </div>
       <BottomNav />
