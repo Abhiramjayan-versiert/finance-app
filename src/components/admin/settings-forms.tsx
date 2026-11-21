@@ -40,7 +40,7 @@ export function DefaultCategories({ items }: { items: Array<{ id: string; kind: 
     <div>
       <ActionForm action={addDefaultCategoryAction as unknown as FormAction} resetOnSuccess className="mb-4 flex flex-wrap items-end gap-2 space-y-0">
         <NativeSelect name="kind" className="w-auto" aria-label="Kind"><option value="expense">Expense</option><option value="income">Income</option></NativeSelect>
-        <input name="name" placeholder="Category name" aria-label="Category name" className="h-10 min-w-0 flex-1 basis-40 rounded-xl border border-border bg-background-2 px-3 text-sm" required maxLength={60} />
+        <input name="name" placeholder="Category name" aria-label="Category name" className="h-10 min-w-0 flex-1 basis-40 rounded-xl border border-border bg-background-2 px-3 text-base sm:text-sm" required maxLength={60} />
         <input name="color" type="color" defaultValue="#A0A6AD" aria-label="Colour" className="h-10 w-12 rounded-xl border border-border bg-background-2" />
         <SubmitButton size="sm">Add</SubmitButton>
       </ActionForm>

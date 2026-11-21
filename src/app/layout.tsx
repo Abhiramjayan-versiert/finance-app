@@ -19,10 +19,13 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // Stops iOS Safari auto-zooming into form fields (which left the page
+  // zoomed and pushed fixed bars off-screen). Pinch-zoom still works on iOS.
+  maximumScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0B0D0F" },
-    { media: "(prefers-color-scheme: light)", color: "#F6F7F8" },
+    { media: "(prefers-color-scheme: dark)", color: "#08080a" },
+    { media: "(prefers-color-scheme: light)", color: "#eceef2" },
   ],
 };
 
