@@ -13,3 +13,8 @@ next-env.d.ts
 .DS_Store
 .firebase/
 firebase-debug.log
+
+# Android signing secrets
+*.jks
+*.keystore
+keystore.properties

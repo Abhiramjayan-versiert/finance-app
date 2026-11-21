@@ -5,6 +5,7 @@ import { fileUrl } from "@/lib/files/url";
 import { isEmailConfigured } from "@/lib/env.server";
 import { PageHeader } from "@/components/shared/page-header";
 import { HELP } from "@/components/shared/page-help";
+import { AppSettings } from "@/components/native/app-settings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CategoryManager, DeleteAccountForm, NotificationPrefsForm, PreferencesForm, ProfileForm, SecurityForms } from "@/components/settings/settings-forms";
@@ -34,6 +35,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       </nav>
       {sp.recovery ? <p className="mb-4 rounded-xl border border-accent/40 bg-accent-soft p-3 text-sm text-accent">You signed in with a recovery link. Set a new password below.</p> : null}
       <div className="grid gap-4 lg:grid-cols-2">
+        <AppSettings />
         <Section id="profile" title="Profile"><ProfileForm fullName={ws.profile.full_name} country={ws.profile.country} email={ws.email} avatarUrl={avatar} /></Section>
         <Section id="preferences" title="Preferences" description="Defaults: INR (₹), en-IN, Asia/Kolkata."><PreferencesForm s={ws.settings} /></Section>
         <Section id="notifications" title="Notifications"><NotificationPrefsForm prefs={ws.settings.notification_prefs} emailConfigured={isEmailConfigured()} /></Section>

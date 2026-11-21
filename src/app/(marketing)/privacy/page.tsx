@@ -17,8 +17,10 @@ export default function Privacy() {
       <p>Data is hosted with Google Firebase (Firestore database and Firebase Authentication) and served via Vercel. If email notifications are enabled, an email provider (Resend) receives your email address and notification text.</p>
       <h2>Offline storage</h2>
       <p>The installable app caches only the public application shell. Entries you create while offline are kept on your device until they sync, and are cleared when you sign out.</p>
+      <h2>Android and phone app</h2>
+      <p>The FINANCE OS phone app shows the same secure web workspace. App lock uses your phone&apos;s own fingerprint, face or screen lock: biometric data never leaves your device and is never sent to us. Bill and spending reminders are scheduled on your device using the titles, amounts and due dates of your own upcoming items. The app stores only your app settings (lock and reminder preferences) on the device, and does not use advertising IDs, analytics SDKs or tracking.</p>
       <h2>Your rights</h2>
-      <p>Export all your data as JSON or CSV, correct it at any time, and permanently delete your account and data from Settings.</p>
+      <p>Export all your data as JSON or CSV, correct it at any time, and permanently delete your account and data from Settings. See <a className="text-accent underline" href="/delete-account">how to delete your account</a>.</p>
     </article>
   );
 }

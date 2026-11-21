@@ -55,7 +55,19 @@ export function ExportButtons({ query }: { query: string }) {
       autoTable(doc, { head: [r.columns.map(ascii)], body: r.rows.map((row) => row.map((c) => (typeof c === "number" ? c.toLocaleString("en-IN", { maximumFractionDigits: 2 }) : ascii(String(c ?? ""))))), styles: { fontSize: 8 }, headStyles: { fillColor: [27, 31, 35] }, alternateRowStyles: { fillColor: [245, 246, 247] } });
       doc.setFontSize(8);
       doc.text("Generated from your FINANCE OS records. Projections are estimates, not guarantees.", 40, doc.internal.pageSize.getHeight() - 24);
-      doc.save(`finance-os-${r.title.toLowerCase().replace(/\W+/g, "-")}.pdf`);
+      const pdfName = `finance-os-${r.title.toLowerCase().replace(/\W+/g, "-")}.pdf`;
+      const { isNativeApp, nativeDownload } = await import("@/lib/native");
+      if (isNativeApp()) {
+        // Phone app: hand the PDF to the share sheet (Files, Drive, WhatsApp…).
+        const url = URL.createObjectURL(doc.output("blob"));
+        try {
+          await nativeDownload(url, pdfName);
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      } else {
+        doc.save(pdfName);
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "PDF export failed");
     } finally {

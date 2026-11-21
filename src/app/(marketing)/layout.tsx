@@ -22,7 +22,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       <footer className="mt-10 border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-8 text-xs text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p>© {new Date().getFullYear()} FINANCE OS · A personal financial planning tool. Not a bank, broker or financial adviser.</p>
-          <div className="flex gap-4"><Link href="/terms" className="hover:text-foreground">Terms</Link><Link href="/privacy" className="hover:text-foreground">Privacy</Link><Link href="/tools/calculators" className="hover:text-foreground">Calculators</Link></div>
+          <div className="flex gap-4"><Link href="/terms" className="hover:text-foreground">Terms</Link><Link href="/privacy" className="hover:text-foreground">Privacy</Link><Link href="/delete-account" className="hover:text-foreground">Delete account</Link><Link href="/tools/calculators" className="hover:text-foreground">Calculators</Link></div>
         </div>
       </footer>
     </div>
