@@ -59,7 +59,7 @@ export function AppSettings() {
             <Fingerprint className="mt-0.5 size-5 shrink-0 text-accent" />
             <div>
               <p className="text-sm font-medium">App lock</p>
-              <p className="text-xs text-muted">{bio.available ? `Ask for ${bio.label.toLowerCase()} when opening the app, and after 30 seconds away.` : "Needs a fingerprint, face unlock or screen lock on this phone."}</p>
+              <p className="text-xs text-muted">{bio.available ? `Ask for ${/^(Face ID|Touch ID)$/.test(bio.label) ? bio.label : bio.label.toLowerCase()} when opening the app, and after 30 seconds away.` : "Needs Face ID, Touch ID, a fingerprint or a screen lock on this phone."}</p>
             </div>
           </div>
           <Switch checked={prefs.lockEnabled} onCheckedChange={toggleLock} aria-label="App lock" />

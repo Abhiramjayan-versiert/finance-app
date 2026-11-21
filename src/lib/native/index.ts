@@ -65,11 +65,15 @@ export async function biometricAvailable(): Promise<{ available: boolean; label:
     const label =
       t === BiometryType.MULTIPLE
         ? "Fingerprint or face"
-        : t === BiometryType.FACE_AUTHENTICATION || t === BiometryType.FACE_ID
-          ? "Face unlock"
-          : t === BiometryType.FINGERPRINT || t === BiometryType.TOUCH_ID
-            ? "Fingerprint"
-            : "Screen lock (PIN, pattern or password)";
+        : t === BiometryType.FACE_ID
+          ? "Face ID"
+          : t === BiometryType.TOUCH_ID
+            ? "Touch ID"
+            : t === BiometryType.FACE_AUTHENTICATION
+              ? "Face unlock"
+              : t === BiometryType.FINGERPRINT
+                ? "Fingerprint"
+                : "Screen lock (PIN, pattern or password)";
     return { available: r.isAvailable, label };
   } catch {
     return { available: false, label: "" };

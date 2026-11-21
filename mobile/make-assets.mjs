@@ -51,3 +51,12 @@ await png(tile(0), 512).toFile("mobile/store/icon-512.png");
 const feature = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500"><defs><radialGradient id="a" cx="0.15" cy="0.1" r="1"><stop stop-color="#2e2e34"/><stop offset="1" stop-color="#08080a"/></radialGradient></defs><rect width="1024" height="500" fill="url(#a)"/><svg x="90" y="170" width="160" height="160" viewBox="0 0 32 32">${BG}<rect width="32" height="32" rx="9" fill="url(#g)"/><rect width="32" height="32" rx="9" fill="url(#h)"/><rect x="0.5" y="0.5" width="31" height="31" rx="8.5" fill="none" stroke="#fff" stroke-opacity="0.2"/><g transform="translate(16 16) scale(0.78) translate(-16 -16)">${GLYPH()}</g></svg><text x="290" y="235" font-family="Helvetica, Arial, sans-serif" font-size="64" font-weight="700" fill="#f5f5f7" letter-spacing="-1">FINANCE OS</text><text x="292" y="295" font-family="Helvetica, Arial, sans-serif" font-size="30" fill="#a1a1a8">Your Money. Your Goals. Your Future.</text></svg>`;
 await sharp(Buffer.from(feature)).png().toFile("mobile/store/feature-graphic-1024x500.png");
 console.log("assets ok");
+
+// ---- iOS: App Store icon (1024, no transparency) and splash (2732²) ----
+const IOS = "ios/App/App/Assets.xcassets";
+if (existsSync(IOS)) {
+  await sharp(Buffer.from(tile(0)), { density: 600 }).resize(1024, 1024).flatten({ background: "#1d1d21" }).removeAlpha().png().toFile(join(IOS, "AppIcon.appiconset/AppIcon-512@2x.png"));
+  const sp = await sharp(Buffer.from(splash(2732, 2732))).png().toBuffer();
+  for (const f of ["splash-2732x2732.png", "splash-2732x2732-1.png", "splash-2732x2732-2.png"]) writeFileSync(join(IOS, "Splash.imageset", f), sp);
+  console.log("ios assets ok");
+}

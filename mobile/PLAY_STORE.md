@@ -45,7 +45,7 @@ Google can reset it after identity checks.
    - **Financial features declaration**: select the personal-finance / budgeting option (wording varies). State clearly that the app does **not** offer loans, banking, payments, money transfers, crypto trading or investment advice — it only records what the user types in.
    - Data safety: see answers below.
    - Account deletion URL: `https://finance-os-versiert-solutions.vercel.app/delete-account`
-4. **Store listing**: paste the text below; upload `icon-512.png`, `feature-graphic-1024x500.png`, and at least 2 phone screenshots (take them on your phone from the installed APK).
+4. **Store listing**: paste the text below; upload `icon-512.png`, `feature-graphic-1024x500.png`, and the phone screenshots in `mobile/store/android/` (1080 × 1920).
 5. **Testing → Closed testing** → create track → upload `app-release.aab` → add **at least 12 testers** (their Gmail addresses) → they must opt in and keep the app installed for **14 days** (required for new personal accounts).
 6. After 14 days: **Apply for production access**, answer the questions, then **Production → Create release** → upload the same/new AAB → roll out.
 

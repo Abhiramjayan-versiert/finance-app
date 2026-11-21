@@ -18,8 +18,15 @@ const config: CapacitorConfig = {
     errorPath: "index.html",
     cleartext: false,
   },
+  appendUserAgent: "FinanceOSApp/1.0",
+  ios: {
+    // Web content handles the notch/home-indicator itself via env(safe-area-inset-*).
+    contentInset: "never",
+    backgroundColor: "#08080a",
+    scrollEnabled: true,
+    allowsLinkPreview: false,
+  },
   android: {
-    appendUserAgent: "FinanceOSApp/1.0",
     backgroundColor: "#08080a",
     allowMixedContent: false,
     webContentsDebuggingEnabled: false,
