@@ -20,7 +20,10 @@ export function Topbar({ name, email, unread, isAdmin, announcement }: { name: s
   return (
     <>
       <header className="sticky top-0 z-30 bg-gradient-to-b from-background via-background/85 to-transparent px-3 pb-2 pt-[max(12px,env(safe-area-inset-top))] sm:px-6 lg:bg-none lg:pl-3">
-        <div data-lg="clear" className="glass flex h-14 items-center gap-2 rounded-2xl px-2.5 sm:h-15 sm:px-4">
+        <div className="relative isolate h-14 sm:h-15">
+        {/* Glass lives on its own background layer so it never softens the logo, title or icons. */}
+        <span aria-hidden data-lg="clear" className="glass absolute inset-0 -z-10 rounded-2xl" />
+        <div className="relative flex h-full items-center gap-2 px-2.5 sm:px-4">
         <Button variant="ghost" size="icon-sm" className="lg:hidden" onClick={() => setMenuOpen(true)} aria-label="Open menu">
           <Menu />
         </Button>
@@ -80,6 +83,7 @@ export function Topbar({ name, email, unread, isAdmin, announcement }: { name: s
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
         </div>
       </header>
       {announcement ? <div className="mx-3 mt-1 rounded-xl bg-accent-soft px-4 py-2 text-center text-xs text-accent sm:mx-6 lg:ml-3">{announcement}</div> : null}

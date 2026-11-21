@@ -6,7 +6,8 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-30 px-3 pt-[max(12px,env(safe-area-inset-top))] sm:px-6">
-        <div data-lg="clear" className="glass mx-auto flex h-14 max-w-6xl items-center gap-3 rounded-2xl px-3 sm:h-15 sm:gap-4 sm:px-5">
+        <div className="relative isolate mx-auto flex h-14 max-w-6xl items-center gap-3 px-3 sm:h-15 sm:gap-4 sm:px-5">
+          <span aria-hidden data-lg="clear" className="glass absolute inset-0 -z-10 rounded-2xl" />
           <Logo />
           <nav className="ml-6 hidden gap-5 text-sm text-muted md:flex">
             <Link href="/#features" className="hover:text-foreground">Features</Link>

@@ -71,4 +71,3 @@ export const NAV_GROUPS: NavGroup[] = [
 
 export const NAV: NavItem[] = NAV_GROUPS.flatMap((g) => g.items);
 
-export const MOBILE_PRIMARY = ["/dashboard", "/transactions", "/goals", "/budgets"];
