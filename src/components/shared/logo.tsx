@@ -20,7 +20,7 @@ export function Logo({ href = "/", className }: { href?: string; className?: str
   return (
     <Link href={href} className={cn("flex items-center gap-2 font-semibold tracking-tight", className)}>
       <LogoMark />
-      <span className="text-[15px]">
+      <span className="whitespace-nowrap text-[15px]">
         FINANCE <span className="text-muted">OS</span>
       </span>
     </Link>
