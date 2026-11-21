@@ -34,7 +34,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
     <>
       <PageHeader help={HELP.settings} title="Settings" description="Profile, preferences and account controls." />
       <nav className="mb-4 flex flex-wrap gap-2" aria-label="Settings sections">
-        {links.map(([id, l]) => <a key={id} href={`#${id}`} className="rounded-full border border-border px-3 py-1 text-xs text-muted hover:text-foreground">{l}</a>)}
+        {links.map(([id, l]) => <a key={id} href={`#${id}`} className="flex min-h-10 items-center rounded-full border border-border bg-card px-4 text-sm font-medium text-foreground hover:bg-card-2">{l}</a>)}
       </nav>
       {sp.recovery ? <p className="mb-4 rounded-xl border border-accent/40 bg-accent-soft p-3 text-sm text-accent">You signed in with a recovery link. Set a new password below.</p> : null}
       <div className="grid gap-4 lg:grid-cols-2">

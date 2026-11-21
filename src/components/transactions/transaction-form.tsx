@@ -79,19 +79,17 @@ export function TransactionForm({ initial, template, defaultType = "expense", on
       {receiptPath ? <input type="hidden" name="receiptPath" value={receiptPath} /> : null}
 
       {!initial ? (
-        <div className="grid grid-cols-2 gap-1 rounded-2xl bg-card-2 p-1" role="radiogroup" aria-label="Transaction type">
+        <div className="grid grid-cols-2 gap-1 rounded-xl bg-card-2 p-1" role="radiogroup" aria-label="Transaction type">
           {(["expense", "income"] as const).map((t) => (
-            <button key={t} type="button" role="radio" aria-checked={type === t} onClick={() => setType(t)} className={cn("h-8 rounded-sm text-sm font-medium capitalize", type === t ? (t === "expense" ? "bg-card-2 text-foreground" : "bg-success/15 text-success") : "text-muted")}>
-              {t}
+            <button key={t} type="button" role="radio" aria-checked={type === t} onClick={() => setType(t)} className={cn("h-11 rounded-lg text-base font-medium", type === t ? "bg-card font-semibold text-foreground shadow-[var(--shadow-sm)]" : "text-muted")}>
+              {t === "expense" ? "Money out" : "Money in"}
             </button>
           ))}
         </div>
       ) : null}
 
-      <FormRow>
-        <TextField label={type === "income" ? "Income title" : "Expense name"} name="title" defaultValue={src?.title} required maxLength={120} placeholder={type === "income" ? "e.g. November salary" : "e.g. Groceries at DMart"} />
-        <MoneyField label="Amount" name="amount" currencySymbol={ws.currencySymbol} defaultValue={src ? fromMinor(src.amount_minor, ws.currency) : ""} required />
-      </FormRow>
+      <MoneyField large label="Amount" name="amount" currencySymbol={ws.currencySymbol} defaultValue={src ? fromMinor(src.amount_minor, ws.currency) : ""} required autoFocus={!initial} />
+      <TextField label={type === "income" ? "Income title" : "Expense name"} name="title" defaultValue={src?.title} required maxLength={120} placeholder={type === "income" ? "e.g. November salary" : "e.g. Groceries"} hint={type === "income" ? "Where did this money come from?" : "What did you pay for?"} />
 
       <FormRow>
         {type === "expense" ? (
@@ -112,8 +110,14 @@ export function TransactionForm({ initial, template, defaultType = "expense", on
         <TextField label={recurring ? "Start date" : type === "income" ? "Date received" : "Date"} name="occurredOn" type="date" defaultValue={initial?.occurred_on ?? ws.today} required />
       </FormRow>
 
+      <SelectField label={type === "expense" ? "Paid with" : "Received in"} name="paymentMethod" defaultValue={src?.payment_method ?? ws.defaultPaymentMethod}>
+        {PAYMENT_METHODS.map((p) => (
+          <option key={p.value} value={p.value}>{p.label}</option>
+        ))}
+      </SelectField>
+
       <MoreOptions
-        summary={type === "expense" ? "subcategory, payment method, notes, repeat, receipt" : "received or expected, payment method, notes, repeat"}
+        summary={type === "expense" ? "subcategory, shop, notes, repeat, receipt" : "received or expected, notes, repeat"}
         defaultOpen={!!initial}
       >
       <FormRow>
@@ -130,11 +134,6 @@ export function TransactionForm({ initial, template, defaultType = "expense", on
             <option value="expected">Expected (future)</option>
           </SelectField>
         )}
-        <SelectField label="Payment method" name="paymentMethod" defaultValue={src?.payment_method ?? ws.defaultPaymentMethod}>
-          {PAYMENT_METHODS.map((p) => (
-            <option key={p.value} value={p.value}>{p.label}</option>
-          ))}
-        </SelectField>
       </FormRow>
 
       {type === "expense" ? <TextField label="Merchant" name="merchant" defaultValue={src?.merchant ?? ""} maxLength={120} placeholder="Optional" /> : <TextField label="Source" name="source" defaultValue={src?.source ?? ""} maxLength={120} placeholder="e.g. Acme Corp (optional)" />}
@@ -172,13 +171,13 @@ export function TransactionForm({ initial, template, defaultType = "expense", on
               </label>
             </Button>
           )}
-          <span className="text-[11px] text-muted">Optional · photo or PDF (PDF up to 700 KB)</span>
+          <span className="text-xs text-muted">Optional · photo or PDF (PDF up to 700 KB)</span>
         </div>
       ) : null}
       </MoreOptions>
 
       <div className="flex justify-end pt-1">
-        <SubmitButton disabled={uploading}>{initial ? "Save changes" : type === "income" ? "Add income" : "Add expense"}</SubmitButton>
+        <SubmitButton className="h-12 w-full text-base sm:w-full" disabled={uploading}>{initial ? "Save changes" : type === "income" ? "Add income" : "Add expense"}</SubmitButton>
       </div>
     </ActionForm>
   );

@@ -14,7 +14,7 @@ export function DropdownMenuContent({ className, align = "end", ...props }: Reac
       <M.Content
         align={align}
         sideOffset={6}
-        className={cn("glass-strong z-50 min-w-48 overflow-hidden rounded-2xl p-1.5 origin-(--radix-dropdown-menu-content-transform-origin) data-[state=open]:lg-pop", className)}
+        className={cn("surface-raised z-50 min-w-48 overflow-hidden rounded-2xl p-1.5 origin-(--radix-dropdown-menu-content-transform-origin) data-[state=open]:enter", className)}
         {...props}
       />
     </M.Portal>
@@ -25,7 +25,7 @@ export function DropdownMenuItem({ className, destructive, ...props }: React.Com
   return (
     <M.Item
       className={cn(
-        "relative flex cursor-pointer select-none items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm outline-none data-[highlighted]:bg-card-2 data-[disabled]:opacity-50 [&_svg]:size-4 [&_svg]:text-muted",
+        "relative flex min-h-11 cursor-pointer select-none items-center gap-3 rounded-xl px-3 py-2.5 text-base outline-none data-[highlighted]:bg-card-2 data-[disabled]:opacity-50 [&_svg]:size-4 [&_svg]:text-muted",
         destructive && "text-danger [&_svg]:text-danger",
         className,
       )}

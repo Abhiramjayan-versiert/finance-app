@@ -53,7 +53,7 @@ export default async function InvestmentsPage({ searchParams }: { searchParams: 
                       <TD><span className="font-medium">{i.name}</span><span className="block text-xs text-muted">{ASSET_CLASS_LABEL[i.asset_type]}{i.units ? ` · ${i.units} units` : ""}{i.symbol ? ` · ${i.symbol}` : ""}</span></TD>
                       <TD className="text-right tabular">{m(i.investedMinor)}</TD>
                       <TD className="text-right tabular">{m(i.current_value_minor)}</TD>
-                      <TD className={cn("text-right tabular", i.pnlMinor > 0 ? "text-success" : i.pnlMinor < 0 ? "text-danger" : "")}>{i.pnlMinor > 0 ? "+" : ""}{m(i.pnlMinor)}<span className="block text-[11px]">{i.investedMinor ? `${percent(i.pnlMinor, i.investedMinor, 1)}%` : ""}</span></TD>
+                      <TD className={cn("text-right tabular", i.pnlMinor > 0 ? "text-success" : i.pnlMinor < 0 ? "text-danger" : "")}>{i.pnlMinor > 0 ? "+" : ""}{m(i.pnlMinor)}<span className="block text-xs">{i.investedMinor ? `${percent(i.pnlMinor, i.investedMinor, 1)}%` : ""}</span></TD>
                       <TD className="hidden text-xs text-muted md:table-cell">{i.current_value_as_of ? formatDisplayDate(i.current_value_as_of) : "—"}</TD>
                       <TD><InvestmentRowActions inv={i} txs={i.txs} /></TD>
                     </TR>
@@ -87,7 +87,7 @@ export default async function InvestmentsPage({ searchParams }: { searchParams: 
                         <TR key={i.id}>
                           <TD className="font-medium">{i.name}<span className="block text-xs text-muted">{i.sip_start_date ? `from ${formatDisplayDate(i.sip_start_date)}` : "Start date not set"} · {months ? `${months} months` : "duration not set"} · {i.expected_return_pct ?? 0}% p.a.</span></TD>
                           <TD className="text-right tabular">{m(i.sip_monthly_minor!)}</TD>
-                          <TD className="text-right tabular">{m(i.totalContributedMinor)}<span className="block text-[11px] text-muted">{Number.isFinite(elapsed) ? `${elapsed} instalments due` : ""}</span></TD>
+                          <TD className="text-right tabular">{m(i.totalContributedMinor)}<span className="block text-xs text-muted">{Number.isFinite(elapsed) ? `${elapsed} instalments due` : ""}</span></TD>
                           <TD className="text-right tabular">{months ? m(proj.investedMinor) : "—"}</TD>
                           <TD className="text-right tabular text-accent">{months ? m(proj.futureValueMinor) : "—"}</TD>
                         </TR>

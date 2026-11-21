@@ -80,10 +80,10 @@ test.describe("signed-in user", () => {
     await addTx(page, "income", "Salary", "100000", "Salary");
     await addTx(page, "expense", "Dinner", "2500", "Food");
     await page.reload();
-    await expect(card(page, "Income this month")).toContainText("₹1,00,000");
-    await expect(card(page, "Expenses this month")).toContainText("₹2,500");
+    await expect(page.getByLabel("Money in this month ₹1,00,000")).toBeVisible();
+    await expect(page.getByLabel("Money out this month ₹2,500")).toBeVisible();
     await expect(card(page, "Available balance")).toContainText("₹97,500");
-    await expect(card(page, "Savings rate")).toContainText("97.5%");
+    await expect(card(page, "This month")).toContainText("97.5% of what you earned");
     await expect(page.getByText("Dinner").first()).toBeVisible();
   });
 
@@ -145,8 +145,8 @@ test.describe("signed-in user", () => {
     await page.goto("/dashboard");
     // 97,500 − 10,000 deposit (transfer and external opening balance are cash-neutral; goal opening was external, +40,000 contribution from cash)
     await expect(card(page, "Available balance")).toContainText("₹47,500");
-    await expect(card(page, "Income this month")).toContainText("₹1,00,000");
-    await expect(card(page, "Expenses this month")).toContainText("₹2,500");
+    await expect(page.getByLabel("Money in this month ₹1,00,000")).toBeVisible();
+    await expect(page.getByLabel("Money out this month ₹2,500")).toBeVisible();
   });
 
   test("withdrawals beyond the balance are refused", async ({ page }) => {
@@ -255,6 +255,7 @@ test.describe("signed-in user", () => {
     await page.goto("/dashboard");
     await expect(page.getByText("Safe to spend")).toBeVisible();
     await expect(page.getByText(/\/ day/)).toBeVisible();
+    await page.getByRole("button", { name: /More details/ }).click();
     await expect(page.getByText("Coming up in the next 30 days")).toBeVisible();
     // The test loan has no next-EMI date, so the list shows its empty state.
     await expect(page.getByText(/Nothing scheduled|EMI|Salary|Rent/).first()).toBeVisible();

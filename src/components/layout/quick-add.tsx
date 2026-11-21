@@ -26,7 +26,7 @@ function Row({ icon: Icon, label, hint }: { icon: LucideIcon; label: string; hin
       <span className="flex size-8 shrink-0 items-center justify-center rounded-2xl bg-card-2"><Icon /></span>
       <span className="min-w-0">
         <span className="block text-sm text-foreground">{label}</span>
-        <span className="block text-[11px] text-muted">{hint}</span>
+        <span className="block text-xs text-muted">{hint}</span>
       </span>
     </>
   );

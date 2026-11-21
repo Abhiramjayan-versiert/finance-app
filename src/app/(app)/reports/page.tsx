@@ -84,7 +84,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
             <dl className="divide-y divide-border text-sm">
               {r.summary.map(([k, v]) => <div key={k} className="flex justify-between gap-3 py-2"><dt className="text-muted">{k}</dt><dd className="text-right font-medium tabular">{v}</dd></div>)}
             </dl>
-            <p className="mt-4 text-xs text-muted">Need everything? <a className="text-accent" href="/api/export?report=all&format=json">Download all your data (JSON)</a>.</p>
+            <p className="mt-4 text-sm text-muted">Need everything? <a className="inline-flex min-h-11 items-center font-medium text-accent underline underline-offset-2" href="/api/export?report=all&format=json">Download all your data (JSON)</a></p>
           </CardContent>
         </Card>
       </div>

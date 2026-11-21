@@ -24,7 +24,7 @@ function NumInput({ id, label, state, suffix, min = 0, max }: { id: string; labe
         <Input id={id} inputMode="decimal" value={state.raw} onChange={(e) => state.setRaw(e.target.value)} aria-invalid={!state.valid || out || undefined} className={cn("tabular", suffix && "pr-14")} />
         {suffix ? <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted">{suffix}</span> : null}
       </div>
-      {!state.valid ? <p className="text-[11px] text-danger">Enter a number</p> : out ? <p className="text-[11px] text-danger">Must be {max !== undefined ? `between ${min} and ${max}` : `at least ${min}`}</p> : null}
+      {!state.valid ? <p className="text-xs text-danger">Enter a number</p> : out ? <p className="text-xs text-danger">Must be {max !== undefined ? `between ${min} and ${max}` : `at least ${min}`}</p> : null}
     </div>
   );
 }

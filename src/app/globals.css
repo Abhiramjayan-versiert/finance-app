@@ -4,47 +4,38 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* =============================================================================
-   FINANCE OS — "Liquid glass" design system
-   Frosted translucent surfaces over a soft, slowly drifting colour field.
-   Surfaces are semi-transparent; text colours are opaque and contrast-checked.
+   FINANCE OS design system — solid, calm, fast.
+   Premium comes from type, spacing and consistency, not effects:
+   - Solid surfaces only. No backdrop blur, no animated backgrounds.
+   - One accent (Finance OS blue) + success / warning / danger, each with a purpose.
+   - Readable sizes: text-xs is 13px, text-sm 15px, body 16px.
+   - Every text colour below meets WCAG AA (4.5:1) on its surface.
    ============================================================================= */
 
-/* Light theme — neutral, Apple-like. Colour is reserved for meaning
-   (accent blue, success, warning, danger) and data. */
+/* Light theme */
 :root {
-  --background: #eceef2;
-  --background-2: rgba(255, 255, 255, 0.5);  /* inputs, inner wells */
-  --popover: rgba(252, 252, 254, 0.72);     /* dialogs, menus, sheets */
-  --popover-solid: #fcfcfe;                  /* native <option> lists */
-  --card: rgba(255, 255, 255, 0.42);
-  --card-2: rgba(0, 0, 0, 0.04);             /* hover / inset fills */
-  --foreground: #111113;
-  --muted: #5f6168;
-  --border: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.15);
-  --glass-edge: rgba(255, 255, 255, 0.7);
-  --glass-highlight: rgba(255, 255, 255, 0.95);
-  --glass-lowlight: rgba(0, 0, 0, 0.06);
-  --glass-sheen: rgba(255, 255, 255, 0.55);
-  --glass-clear: rgba(255, 255, 255, 0.22);
-  --capsule-top: rgba(255, 255, 255, 0.95);
-  --capsule-bottom: rgba(255, 255, 255, 0.7);
-  --capsule-rim: rgba(255, 255, 255, 1);
-  --capsule-edge: rgba(0, 0, 0, 0.06);
-  --lens-fill: rgba(250, 250, 252, 0.94);
-  --lens-rim: rgba(255, 255, 255, 0.9);
-  --glass-shadow: rgba(0, 0, 0, 0.12);
-  --accent: #0a66d8;
-  --accent-soft: rgba(10, 102, 216, 0.1);
+  --background: #f4f5f7; /* page */
+  --background-2: #ffffff; /* inputs */
+  --card: #ffffff; /* cards, bars */
+  --card-2: #f0f1f4; /* hover / inset / chips */
+  --popover: #ffffff; /* menus, dialogs, sheets */
+  --popover-solid: #ffffff; /* native <option> lists */
+  --foreground: #111214;
+  --muted: #555b67; /* 7.0:1 on white */
+  --border: #e2e4e9;
+  --border-strong: #c9cdd5;
+  --accent: #0a66d8; /* 5.6:1 on white */
+  --accent-soft: #e8f0fc;
   --accent-foreground: #ffffff;
-  --success: #15803d;
-  --warning: #a15c07;
-  --danger: #d4342c;
+  --success: #12753f;
+  --success-soft: #e6f4ec;
+  --warning: #8f5300;
+  --warning-soft: #fdf1df;
+  --danger: #c4302b;
+  --danger-soft: #fbe9e8;
   --ring: #0a66d8;
-  --wall-1: #ffffff;
-  --wall-2: #d5d8de;
-  --wall-3: #f7f8fa;
-  --wall-4: #c9ccd3;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 8px 24px -8px rgba(16, 24, 40, 0.18);
   /* Validated categorical slots (dataviz reference palette), fixed order */
   --series-1: #2a78d6;
   --series-2: #eb6834;
@@ -58,39 +49,28 @@
 
 /* Dark theme (default) */
 .dark {
-  --background: #08080a;
-  --background-2: rgba(255, 255, 255, 0.06);
-  --popover: rgba(30, 30, 34, 0.68);
-  --popover-solid: #1c1c1f;
-  --card: rgba(255, 255, 255, 0.045);
-  --card-2: rgba(255, 255, 255, 0.07);
-  --foreground: #f5f5f7;
-  --muted: #a1a1a8;
-  --border: rgba(255, 255, 255, 0.09);
-  --border-strong: rgba(255, 255, 255, 0.17);
-  --glass-edge: rgba(255, 255, 255, 0.14);
-  --glass-highlight: rgba(255, 255, 255, 0.28);
-  --glass-lowlight: rgba(255, 255, 255, 0.05);
-  --glass-sheen: rgba(255, 255, 255, 0.10);
-  --glass-clear: rgba(40, 40, 46, 0.42);
-  --capsule-top: rgba(255, 255, 255, 0.17);
-  --capsule-bottom: rgba(255, 255, 255, 0.09);
-  --capsule-rim: rgba(255, 255, 255, 0.28);
-  --capsule-edge: rgba(255, 255, 255, 0.1);
-  --lens-fill: rgba(34, 34, 40, 0.94);
-  --lens-rim: rgba(255, 255, 255, 0.32);
-  --glass-shadow: rgba(0, 0, 0, 0.55);
-  --accent: #0a7cf0;
-  --accent-soft: rgba(10, 124, 240, 0.18);
+  --background: #0b0b0d;
+  --background-2: #1b1b1f;
+  --card: #151518;
+  --card-2: #1f1f23;
+  --popover: #1b1b1f;
+  --popover-solid: #1b1b1f;
+  --foreground: #f4f4f6;
+  --muted: #a6a6b0; /* 7.6:1 on card */
+  --border: #26262b;
+  --border-strong: #36363d;
+  --accent: #3b8cff; /* 5.4:1 on card; white text on it is 3.4:1 (large/bold labels only) */
+  --accent-soft: #13233d;
   --accent-foreground: #ffffff;
   --success: #4ade80;
+  --success-soft: #10261a;
   --warning: #fbbf24;
+  --warning-soft: #2b2110;
   --danger: #ff6b63;
-  --ring: #3d97ff;
-  --wall-1: #2a2a2f;
-  --wall-2: #0c0c0e;
-  --wall-3: #1d1d21;
-  --wall-4: #050506;
+  --danger-soft: #2e1413;
+  --ring: #5aa0ff;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 28px -10px rgba(0, 0, 0, 0.7);
   --series-1: #3987e5;
   --series-2: #d95926;
   --series-3: #199e70;
@@ -99,18 +79,6 @@
   --series-6: #008300;
   --chart-grid: rgba(255, 255, 255, 0.08);
   color-scheme: dark;
-}
-
-/* Pointer-tracked specular highlight position (animated smoothly). */
-@property --lg-x {
-  syntax: "<percentage>";
-  inherits: false;
-  initial-value: 22%;
-}
-@property --lg-y {
-  syntax: "<percentage>";
-  inherits: false;
-  initial-value: 0%;
 }
 
 @theme inline {
@@ -127,10 +95,13 @@
   --color-accent-soft: var(--accent-soft);
   --color-accent-foreground: var(--accent-foreground);
   --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
   --color-ring: var(--ring);
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -139,25 +110,33 @@
   --radius-2xl: 18px;
 }
 
+/* Readable type scale (rem-based, so it follows the user's font-size setting). */
+@theme {
+  --text-xs: 0.8125rem; /* 13px — smallest text in the app */
+  --text-xs--line-height: 1.125rem;
+  --text-sm: 0.9375rem; /* 15px */
+  --text-sm--line-height: 1.375rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+}
+
 @layer base {
   * {
     border-color: var(--border);
   }
   html {
     -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   body {
     background: var(--background);
     color: var(--foreground);
-    font-feature-settings: "cv11", "ss01";
     -webkit-font-smoothing: antialiased;
-    letter-spacing: -0.005em;
-    position: relative;
-    isolation: isolate;
+    text-rendering: optimizeLegibility;
   }
-  /* Neutral, softly lit backdrop for the glass to refract. Greyscale only. */
-  /* Never let anything widen the page sideways (iOS Safari counts fixed and
-     transformed elements when sizing the page, which shifts centred UI). */
+  /* Never let anything widen the page sideways (iOS Safari counts fixed
+     elements when sizing the page, which shifts centred UI). */
   html,
   body {
     max-width: 100%;
@@ -168,21 +147,6 @@
     body {
       overflow-x: clip;
     }
-  }
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background:
-      radial-gradient(42vmax 30vmax at 18% 12%, var(--wall-1), transparent 70%),
-      radial-gradient(36vmax 36vmax at 85% 20%, var(--wall-2), transparent 70%),
-      radial-gradient(46vmax 32vmax at 70% 92%, var(--wall-3), transparent 70%),
-      radial-gradient(30vmax 30vmax at 10% 85%, var(--wall-4), transparent 70%);
-    background-size: 120% 120%;
-    background-position: 0% 0%;
-    animation: fos-drift 48s ease-in-out infinite alternate;
   }
   /* iOS gives date inputs a fixed intrinsic width; let them shrink. */
   input[type="date"],
@@ -230,132 +194,36 @@
   }
 }
 
-/* Overlays open with a liquid, slightly elastic scale. */
-@keyframes lg-pop {
-  0% { opacity: 0; transform: var(--lg-base, translate(0, 0)) scale(0.9); filter: blur(6px); }
-  60% { opacity: 1; transform: var(--lg-base, translate(0, 0)) scale(1.015); filter: blur(0); }
-  100% { opacity: 1; transform: var(--lg-base, translate(0, 0)) scale(1); }
-}
-@keyframes lg-rise {
-  0% { opacity: 0; transform: translateY(24px) scale(0.98); }
-  65% { opacity: 1; transform: translateY(-3px) scale(1.005); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes lg-squish {
-  0% { transform: scaleX(1) scaleY(1); }
-  30% { transform: scaleX(1.18) scaleY(0.9); }
-  65% { transform: scaleX(0.96) scaleY(1.04); }
-  100% { transform: scaleX(1) scaleY(1); }
-}
-@utility lg-squish {
-  animation: lg-squish 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-}
-@utility lg-pop {
-  animation: lg-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-@utility lg-rise {
-  animation: lg-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes fos-drift {
-  0% {
-    background-position: 0% 0%;
-  }
-  50% {
-    background-position: 60% 40%;
-  }
-  100% {
-    background-position: 100% 100%;
-  }
-}
-
-/* Liquid glass: clear fill, light-catching rim, soft depth, and a specular
-   sheen that follows the pointer. Refraction is layered on in Chromium by
-   components/providers/liquid-glass.tsx. */
-@utility glass {
+/* Card / bar surface: solid fill, hairline border. No blur, no layered shadows. */
+@utility surface {
   background-color: var(--card);
-  background-image: radial-gradient(130% 90% at var(--lg-x) var(--lg-y), var(--glass-sheen), transparent 55%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  backdrop-filter: blur(18px) saturate(180%);
-  border: 1px solid var(--glass-edge);
-  box-shadow:
-    inset 0 1px 0 0 var(--glass-highlight),
-    inset 0 -1px 0 0 var(--glass-lowlight),
-    inset 1px 0 0 0 color-mix(in srgb, var(--glass-highlight) 40%, transparent),
-    inset 0 0 20px 0 color-mix(in srgb, var(--glass-highlight) 18%, transparent),
-    0 1px 2px rgba(0, 0, 0, 0.05),
-    0 14px 36px -14px var(--glass-shadow);
-  transition: --lg-x 0.5s ease-out, --lg-y 0.5s ease-out, box-shadow 0.3s, background-color 0.3s;
+  border: 1px solid var(--border);
 }
 
-/* Thicker glass for overlays (menus, dialogs, sheets) so text stays crisp. */
-@utility glass-strong {
+/* Raised surface for menus, dialogs and sheets: solid, one soft static shadow. */
+@utility surface-raised {
   background-color: var(--popover);
-  background-image: radial-gradient(130% 90% at var(--lg-x) var(--lg-y), var(--glass-sheen), transparent 55%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
-  backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid var(--glass-edge);
-  box-shadow:
-    inset 0 1px 0 0 var(--glass-highlight),
-    inset 0 -1px 0 0 var(--glass-lowlight),
-    inset 0 0 24px 0 color-mix(in srgb, var(--glass-highlight) 20%, transparent),
-    0 28px 70px -18px rgba(0, 0, 0, 0.45);
-  transition: --lg-x 0.5s ease-out, --lg-y 0.5s ease-out;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
 }
 
-/* Clear glass for floating bars: almost no frost, so content scrolling
-   underneath stays visible and visibly bends at the edges. */
-[data-lg="clear"] {
-  background-color: var(--glass-clear) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  backdrop-filter: blur(12px) saturate(180%);
-}
-
-/* Dock selection capsule: a brighter pane of glass inside the dock. No extra
-   backdrop blur (it already sits on glass) — just tint, rim light and depth. */
-@utility dock-capsule {
-  background:
-    linear-gradient(180deg, var(--capsule-top), var(--capsule-bottom));
-  box-shadow:
-    inset 0 1px 0 0 var(--capsule-rim),
-    inset 0 -1px 0 0 rgba(0, 0, 0, 0.06),
-    inset 0 0 0 0.5px var(--capsule-edge),
-    0 2px 10px -2px rgba(0, 0, 0, 0.18);
-}
-
-/* Lifted lens while pressing the dock: a clear, thick bubble of glass with a
-   bright rim and the faintest chromatic edge, like the iOS tab bar. */
-@utility dock-lens {
-  background: var(--lens-fill);
-  box-shadow:
-    inset 0 0 0 1px var(--lens-rim),
-    inset 0 1.5px 1px -0.5px rgba(255, 255, 255, 0.55),
-    inset 2px 0 2px -1px rgba(120, 200, 255, 0.28),
-    inset -2px 0 2px -1px rgba(255, 140, 210, 0.22),
-    inset 0 -2px 6px -2px rgba(0, 0, 0, 0.25),
-    0 10px 28px -8px rgba(0, 0, 0, 0.45);
-}
-@keyframes dock-reform {
-  0% { opacity: 0; transform: scale(0.65); }
-  60% { opacity: 1; }
-}
-@keyframes dock-magnify-in {
-  from { opacity: 0; }
-}
-@utility dock-magnify {
-  animation: dock-magnify-in 0.18s ease-out;
-}
-@utility dock-reform {
-  animation: dock-reform 0.38s cubic-bezier(0.3, 1.3, 0.5, 1);
-}
-
-/* Springy press feedback, like iOS. */
+/* Instant, cheap press feedback (transform only). */
 @utility press {
-  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s, box-shadow 0.2s, background-color 0.2s;
+  transition: transform 0.12s ease-out;
   &:active {
-    transform: scale(0.95);
-    transition-duration: 0.12s;
+    transform: scale(0.97);
   }
+}
+
+/* Short, transform/opacity-only entrance for overlays. */
+@keyframes fos-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+}
+@utility enter {
+  animation: fos-enter 0.16s ease-out;
 }
 
 @utility tabular {
@@ -373,34 +241,11 @@
   }
 }
 
-/* Browsers without backdrop-filter get a more opaque fill instead. */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  :root {
-    --card: rgba(255, 255, 255, 0.9);
-    --popover: #fcfcfe;
-  }
-  .dark {
-    --card: rgba(30, 30, 34, 0.92);
-    --popover: #1c1c1f;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  :root {
-    --card: rgba(255, 255, 255, 0.94);
-    --popover: #fcfcfe;
-  }
-  .dark {
-    --card: rgba(30, 30, 34, 0.95);
-    --popover: #1c1c1f;
   }
 }

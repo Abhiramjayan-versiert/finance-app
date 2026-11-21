@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { CalendarClock, CheckCircle2, Target, Wallet, Flag, Coins } from "lucide-react";
+import { Target } from "lucide-react";
 import { requireWorkspace } from "@/lib/auth";
 import { getGoals, getSavings, getTransactions } from "@/server/queries/finance";
 import { averageMonthlySurplus } from "@/lib/finance/analytics";
@@ -8,11 +8,11 @@ import { GOAL_STATUS_LABEL, planGoals } from "@/lib/finance/goals";
 import { formatMoney } from "@/lib/finance/money";
 import { addDaysISO, formatDisplayDate, lastMonths } from "@/lib/finance/dates";
 import { GOAL_CATEGORY_LABEL } from "@/lib/labels";
+import { Expandable } from "@/components/shared/expandable";
 import { PageHeader } from "@/components/shared/page-header";
 import { HELP } from "@/components/shared/page-help";
-import { StatCard } from "@/components/shared/stat-card";
 import { EmptyState, EstimateNote } from "@/components/shared/states";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { NewGoalButton } from "@/components/goals/goal-actions";
@@ -38,31 +38,59 @@ export default async function GoalsPage({ searchParams }: { searchParams: Promis
 
   return (
     <>
-      <PageHeader help={HELP.goals} title="Financial Goals" description="Plan purchases and milestones with exact daily, weekly and monthly savings targets." actions={<NewGoalButton accounts={accounts} defaultOpen={sp.new === "1"} />} />
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
-        <StatCard label="Total goals" value={String(live.length)} icon={Target} />
-        <StatCard label="Active" value={String(open.length)} icon={Flag} />
-        <StatCard label="Completed" value={String(live.filter((g) => g.derivedStatus === "completed").length)} icon={CheckCircle2} />
-        <StatCard label="Total target" value={m(totalTarget)} icon={Coins} />
-        <StatCard label="Total saved" value={m(totalSaved)} icon={Wallet} highlight />
-        <StatCard label="Remaining" value={m(Math.max(0, totalTarget - totalSaved))} icon={CalendarClock} />
-      </section>
+      <PageHeader help={HELP.goals} title="Goals" description="Save up for the things you want." actions={<NewGoalButton accounts={accounts} defaultOpen={sp.new === "1"} />} />
+      {live.length ? (
+        <Card className="p-5">
+          <p className="text-base">
+            You&apos;ve saved <span className="font-semibold tabular">{m(totalSaved)}</span> of <span className="font-semibold tabular">{m(totalTarget)}</span> across {live.length} goal{live.length === 1 ? "" : "s"}.
+          </p>
+          <Progress className="mt-3 h-3" value={totalTarget ? (totalSaved / totalTarget) * 100 : 0} label="All goals progress" />
+          <p className="mt-2 text-sm text-muted">{m(Math.max(0, totalTarget - totalSaved))} to go · {open.length} active · {live.filter((g) => g.derivedStatus === "completed").length} completed</p>
+        </Card>
+      ) : null}
 
       {goals.length === 0 ? (
         <EmptyState className="mt-6" icon={Target} title="Plan your first goal" description="Example: a ₹1,80,000 MacBook in 12 months with ₹20,000 already saved needs ₹13,333.34 a month." action={<NewGoalButton accounts={accounts} />} />
       ) : (
         <>
+          {upcoming.length ? (
+            <p className="mt-4 text-xs text-muted">Upcoming target dates: {upcoming.map((g) => `${g.name} (${formatDisplayDate(g.target_date)})`).join(" · ")}</p>
+          ) : null}
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {goals.map((g) => (
+              <Link key={g.id} href={`/goals/${g.id}`} className="group rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <Card className="h-full p-5 transition-colors group-hover:border-border-strong">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-lg font-semibold">{g.name}</p>
+                      <p className="text-sm text-muted">{GOAL_CATEGORY_LABEL[g.category]} · by {formatDisplayDate(g.target_date)}</p>
+                    </div>
+                    <Badge variant={STATUS_VARIANT[g.derivedStatus]}>{GOAL_STATUS_LABEL[g.derivedStatus]}</Badge>
+                  </div>
+                  <p className="mt-3 text-base">
+                    <span className="font-semibold tabular">{m(g.savedMinor)}</span> <span className="text-muted">of</span> <span className="tabular">{m(g.target_amount_minor)}</span> <span className="text-muted">saved</span>
+                  </p>
+                  <Progress value={g.plan.progressPct} tone={g.derivedStatus === "at_risk" ? "warning" : g.derivedStatus === "completed" ? "success" : "accent"} className="mt-2 h-3" label={`${g.name}: ${g.plan.progressPct}% saved`} />
+                  {g.plan.remainingMinor > 0 ? (
+                    <p className="mt-2 text-base font-semibold tabular">{m(g.plan.remainingMinor)} to go</p>
+                  ) : (
+                    <p className="mt-2 text-base font-semibold text-success">Goal reached 🎉</p>
+                  )}
+                  {g.plan.remainingMinor > 0 && !["paused", "cancelled"].includes(g.derivedStatus) ? (
+                    <p className="mt-1 text-sm text-muted">Save about <span className="font-medium text-foreground tabular">{m(g.plan.monthlyRequiredMinor)}</span> a month to reach it on time.</p>
+                  ) : null}
+                  {g.etaDate && g.plan.remainingMinor > 0 ? <p className="mt-1 text-sm text-muted">At your current pace: around {formatDisplayDate(g.etaDate, "MMM yyyy")}</p> : null}
+                </Card>
+              </Link>
+            ))}
+          </div>
           {open.length ? (
-            <Card className="mt-4">
-              <CardHeader>
-                <div>
-                  <CardTitle>Smart goal planner</CardTitle>
-                  <CardDescription>Your average monthly surplus (income − expenses, last 3 complete months) allocated by priority, then deadline. Each goal keeps its own allocation — nothing is double-counted.</CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent>
+            <Expandable className="mt-4" title="Can I afford all my goals?" description="Checks your goals against what you usually have left each month">
+              <div>
+                <p className="mb-4 text-sm text-muted">Based on your average money left over (income − spending) in the last 3 full months, shared out by priority and then by deadline.</p>
                 <div className="mb-4 grid gap-3 text-sm sm:grid-cols-3">
-                  <div className="rounded-xl bg-card-2 p-3"><p className="text-xs text-muted">Monthly capacity</p><p className={cn("font-semibold tabular", surplus.surplusMinor < 0 && "text-danger")}>{m(surplus.surplusMinor)}</p><p className="text-[11px] text-muted">{m(surplus.incomeMinor)} in − {m(surplus.expenseMinor)} out</p></div>
+                  <div className="rounded-xl bg-card-2 p-3"><p className="text-xs text-muted">Monthly capacity</p><p className={cn("font-semibold tabular", surplus.surplusMinor < 0 && "text-danger")}>{m(surplus.surplusMinor)}</p><p className="text-xs text-muted">{m(surplus.incomeMinor)} in − {m(surplus.expenseMinor)} out</p></div>
                   <div className="rounded-xl bg-card-2 p-3"><p className="text-xs text-muted">Needed for all goals</p><p className="font-semibold tabular">{m(plan.totalRequiredMinor)}/mo</p></div>
                   <div className={cn("rounded-xl p-3", plan.affordable ? "bg-success/10" : "bg-warning/10")}>
                     <p className="text-xs text-muted">{plan.affordable ? "Your income supports all goals" : "Monthly shortfall"}</p>
@@ -82,42 +110,10 @@ export default async function GoalsPage({ searchParams }: { searchParams: Promis
                   ))}
                 </ol>
                 <EstimateNote className="mt-3" />
-              </CardContent>
-            </Card>
+              </div>
+            </Expandable>
           ) : null}
 
-          {upcoming.length ? (
-            <p className="mt-4 text-xs text-muted">Upcoming target dates: {upcoming.map((g) => `${g.name} (${formatDisplayDate(g.target_date)})`).join(" · ")}</p>
-          ) : null}
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {goals.map((g) => (
-              <Link key={g.id} href={`/goals/${g.id}`} className="group">
-                <Card className="h-full p-4 transition-colors group-hover:border-border-strong">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold">{g.name}</p>
-                      <p className="text-xs text-muted">{GOAL_CATEGORY_LABEL[g.category]} · due {formatDisplayDate(g.target_date)}</p>
-                    </div>
-                    <Badge variant={STATUS_VARIANT[g.derivedStatus]}>{GOAL_STATUS_LABEL[g.derivedStatus]}</Badge>
-                  </div>
-                  <div className="mt-3 flex items-baseline justify-between text-sm">
-                    <span className="font-semibold tabular">{m(g.savedMinor)}</span>
-                    <span className="text-xs text-muted tabular">of {m(g.target_amount_minor)} · {g.plan.progressPct}%</span>
-                  </div>
-                  <Progress value={g.plan.progressPct} tone={g.derivedStatus === "at_risk" ? "warning" : g.derivedStatus === "completed" ? "success" : "accent"} className="mt-2 h-2" />
-                  {g.plan.remainingMinor > 0 && !["paused", "cancelled"].includes(g.derivedStatus) ? (
-                    <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-                      <div className="rounded-xl bg-card-2 p-2"><dt className="text-muted">Daily</dt><dd className="font-medium tabular">{m(g.plan.dailyRequiredMinor)}</dd></div>
-                      <div className="rounded-xl bg-card-2 p-2"><dt className="text-muted">Weekly</dt><dd className="font-medium tabular">{m(g.plan.weeklyRequiredMinor)}</dd></div>
-                      <div className="rounded-xl bg-card-2 p-2"><dt className="text-muted">Monthly</dt><dd className="font-medium tabular">{m(g.plan.monthlyRequiredMinor)}</dd></div>
-                    </dl>
-                  ) : null}
-                  {g.etaDate && g.plan.remainingMinor > 0 ? <p className="mt-2 text-[11px] text-muted">At your current pace: est. {formatDisplayDate(g.etaDate, "MMM yyyy")}</p> : null}
-                </Card>
-              </Link>
-            ))}
-          </div>
         </>
       )}
     </>

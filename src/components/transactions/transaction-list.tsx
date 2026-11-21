@@ -43,7 +43,7 @@ export function TransactionList({ transactions, emptyTitle = "No transactions ye
           const parent = cat?.parent_id ? cats.get(cat.parent_id) : undefined;
           return (
             <li key={t.id} className="flex items-center gap-3 py-2.5">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold" style={{ background: `color-mix(in srgb, ${cat?.color ?? "#A0A6AD"} 18%, transparent)`, color: `color-mix(in srgb, ${cat?.color ?? "#A0A6AD"} 55%, var(--foreground))` }} aria-hidden>
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold" style={{ background: `color-mix(in srgb, ${cat?.color ?? "#A0A6AD"} 18%, transparent)`, color: `color-mix(in srgb, ${cat?.color ?? "#A0A6AD"} 55%, var(--foreground))` }} aria-hidden>
                 {(cat?.name ?? t.title).slice(0, 2).toUpperCase()}
               </span>
               <div className="min-w-0 flex-1">

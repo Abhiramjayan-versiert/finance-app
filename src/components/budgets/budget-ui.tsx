@@ -67,41 +67,45 @@ export function NewBudgetButton() {
   );
 }
 
-const LEVEL_LABEL = { ok: "On track", notice: "Heads up", warning: "Warning", critical: "Limit reached", exceeded: "Over budget" } as const;
+const LEVEL_LABEL = { ok: "On track", notice: "On track", warning: "Getting close", critical: "Limit reached", exceeded: "Over budget" } as const;
 
-export function BudgetCard({ budget, usage, periodLabel, categoryName }: { budget: Budget; usage: BudgetUsage; periodLabel: string; categoryName: string }) {
+export function BudgetCard({ budget, usage, periodLabel, categoryName, daysLeft = null }: { budget: Budget; usage: BudgetUsage; periodLabel: string; categoryName: string; daysLeft?: number | null }) {
   const ws = useWorkspace();
   const { run } = useAction();
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const m = (v: number) => formatMoney(v, ws.currency, { locale: ws.locale });
   const tone = levelColor(usage.level);
-  const Icon = usage.level === "ok" ? CheckCircle2 : AlertTriangle;
+  const Icon = usage.level === "ok" || usage.level === "notice" ? CheckCircle2 : AlertTriangle;
   return (
-    <Card className="p-4">
+    <Card className="p-5">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">{budget.name}</p>
-          <p className="text-xs text-muted">{categoryName} · {budget.period === "monthly" ? "Monthly" : "Yearly"} · {periodLabel}</p>
+          <p className="truncate text-base font-semibold">{budget.name}</p>
+          <p className="text-sm text-muted">{categoryName} · {budget.period === "monthly" ? "Monthly limit" : "Yearly limit"} · {periodLabel}</p>
         </div>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon-sm" aria-label="Budget actions"><MoreVertical /></Button></DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" aria-label={`Edit or delete ${budget.name}`}><MoreVertical /></Button></DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuItem onSelect={() => setEditing(true)}><Pencil /> Edit</DropdownMenuItem>
             <DropdownMenuItem destructive onSelect={() => setDeleting(true)}><Trash2 /> Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="mt-3 flex items-baseline justify-between">
-        <span className="text-lg font-semibold tabular">{m(usage.spentMinor)}</span>
-        <span className="text-xs text-muted tabular">of {m(usage.budgetMinor)}</span>
+      <p className="mt-3 text-base">
+        You&apos;ve spent <span className="font-semibold tabular">{m(usage.spentMinor)}</span> of <span className="tabular">{m(usage.budgetMinor)}</span>
+      </p>
+      <Progress value={usage.utilizationPct} tone={tone} className="mt-2 h-3" label={`${budget.name}: ${usage.utilizationPct}% used`} />
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <span className={usage.remainingMinor < 0 ? "text-base font-semibold text-danger tabular" : "text-base font-semibold tabular"}>
+          {usage.remainingMinor < 0 ? `${m(-usage.remainingMinor)} over` : `${m(usage.remainingMinor)} left`}
+        </span>
+        {daysLeft !== null ? <span className="text-sm text-muted">{daysLeft} day{daysLeft === 1 ? "" : "s"} to go</span> : null}
       </div>
-      <Progress value={usage.utilizationPct} tone={tone} className="mt-2 h-2" label={`${budget.name}: ${usage.utilizationPct}% used`} />
-      <div className="mt-2 flex items-center justify-between text-xs">
-        <Badge variant={tone === "accent" ? "accent" : tone}><Icon className="size-3" /> {LEVEL_LABEL[usage.level]} · {usage.utilizationPct}%</Badge>
-        <span className={usage.remainingMinor < 0 ? "text-danger tabular" : "text-muted tabular"}>{usage.remainingMinor < 0 ? `${m(-usage.remainingMinor)} over` : `${m(usage.remainingMinor)} left`}</span>
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <Badge variant={tone === "accent" ? "accent" : tone}><Icon className="size-3.5" aria-hidden /> {LEVEL_LABEL[usage.level]} · {usage.utilizationPct}%</Badge>
+        <span className="text-xs text-muted">Alerts at {budget.thresholds.join("%, ")}%</span>
       </div>
-      <p className="mt-2 text-[11px] text-muted">Alerts at {budget.thresholds.join("%, ")}%</p>
       <Dialog open={editing} onOpenChange={setEditing}>
         {editing ? <DialogContent title="Edit budget"><BudgetForm initial={budget} onDone={() => setEditing(false)} /></DialogContent> : null}
       </Dialog>

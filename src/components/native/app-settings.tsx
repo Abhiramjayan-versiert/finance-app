@@ -50,9 +50,9 @@ export function AppSettings() {
 
   const row = "flex items-start justify-between gap-4 py-3.5";
   return (
-    <section id="app" className="glass min-w-0 scroll-mt-24 rounded-[22px] p-5 sm:p-6">
-      <h2 className="text-[15px] font-semibold tracking-tight">Phone app</h2>
-      <p className="mt-0.5 text-[13px] text-muted">Security and reminders on this device.</p>
+    <section id="app" className="surface min-w-0 scroll-mt-24 rounded-2xl p-5 sm:p-6">
+      <h2 className="text-base font-semibold tracking-tight">Phone app</h2>
+      <p className="mt-0.5 text-sm text-muted">Security and reminders on this device.</p>
       <div className="mt-2 divide-y divide-border">
         <div className={row}>
           <div className="flex gap-3">

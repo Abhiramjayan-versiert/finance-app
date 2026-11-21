@@ -19,12 +19,11 @@ export function Topbar({ name, email, unread, isAdmin, announcement }: { name: s
   const { resolvedTheme, setTheme } = useTheme();
   return (
     <>
-      <header className="sticky top-0 z-30 bg-gradient-to-b from-background via-background/85 to-transparent px-3 pb-2 pt-[max(12px,env(safe-area-inset-top))] sm:px-6 lg:bg-none lg:pl-3">
-        <div className="relative isolate h-14 sm:h-15">
-        {/* Glass lives on its own background layer so it never softens the logo, title or icons. */}
-        <span aria-hidden data-lg="clear" className="glass absolute inset-0 -z-10 rounded-2xl" />
-        <div className="relative flex h-full items-center gap-2 px-2.5 sm:px-4">
-        <Button variant="ghost" size="icon-sm" className="lg:hidden" onClick={() => setMenuOpen(true)} aria-label="Open menu">
+      {/* Solid, compact header. No blur, so the logo and title render sharp. */}
+      <header className="sticky top-0 z-30 border-b border-border bg-background pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 max-w-7xl items-center gap-1.5 px-2 sm:h-16 sm:gap-2 sm:px-6">
+        <div className="contents">
+        <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMenuOpen(true)} aria-label="Open menu">
           <Menu />
         </Button>
         <div className="lg:hidden">
@@ -39,21 +38,21 @@ export function Topbar({ name, email, unread, isAdmin, announcement }: { name: s
             </Button>
           }
         />
-        <Button variant="ghost" size="icon-sm" asChild aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`}>
+        <Button variant="ghost" size="icon" asChild aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`}>
           <Link href="/notifications" className="relative">
             <Bell />
-            {unread > 0 ? <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-accent text-[9px] font-bold text-accent-foreground">{unread > 9 ? "9+" : unread}</span> : null}
+            {unread > 0 ? <span className="absolute right-1.5 top-1.5 flex min-w-5 h-5 items-center justify-center rounded-full bg-danger px-1 text-xs font-bold text-white">{unread > 9 ? "9+" : unread}</span> : null}
           </Link>
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex size-9 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent ring-1 ring-border hover:ring-border-strong" aria-label="Account menu">
-              {initials(name || email)}
+            <button className="flex size-11 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Account menu">
+              <span className="flex size-9 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent">{initials(name || email)}</span>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
+          <DropdownMenuContent className="w-64">
             <DropdownMenuLabel>
-              <span className="block truncate text-sm font-medium text-foreground">{name || "Your account"}</span>
+              <span className="block truncate text-base font-semibold text-foreground">{name || "Your account"}</span>
               <span className="block truncate">{email}</span>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

@@ -86,7 +86,7 @@ export default async function AchievementsPage() {
                 <div className="min-w-0">
                   <p className="text-sm font-semibold">{a.name.replace("₹", currencyInfo(ws.settings.currency).symbol)}</p>
                   <p className="text-xs text-muted">{a.description}</p>
-                  {at ? <p className="mt-1 text-[11px] text-accent">Earned {formatDisplayDate(at.slice(0, 10))}</p> : <><Progress value={p} className="mt-2" /><p className="mt-1 text-[11px] text-muted">{p}%</p></>}
+                  {at ? <p className="mt-1 text-xs text-accent">Earned {formatDisplayDate(at.slice(0, 10))}</p> : <><Progress value={p} className="mt-2" /><p className="mt-1 text-xs text-muted">{p}%</p></>}
                 </div>
               </div>
             </Card>

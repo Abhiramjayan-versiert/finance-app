@@ -29,8 +29,8 @@ export function ConfirmDialog({
     <A.Root open={open} onOpenChange={onOpenChange}>
       {trigger ? <A.Trigger asChild>{trigger}</A.Trigger> : null}
       <A.Portal>
-        <A.Overlay className="fixed inset-0 z-50 bg-black/25 backdrop-blur-sm data-[state=open]:animate-in data-[state=open]:fade-in-0" />
-        <A.Content className="glass-strong fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-[28px] p-6 data-[state=open]:lg-pop">
+        <A.Overlay className="fixed inset-0 z-50 bg-black/55 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
+        <A.Content className="surface-raised fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl p-6 data-[state=open]:enter">
           <A.Title className="text-base font-semibold">{title}</A.Title>
           <A.Description className="mt-2 text-sm text-muted">{description}</A.Description>
           <div className="mt-5 flex justify-end gap-2">

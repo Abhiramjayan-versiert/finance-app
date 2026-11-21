@@ -102,7 +102,7 @@ export function GoalForm({ initial, savedMinor = 0, accounts, onDone }: { initia
         <Button type="button" variant="secondary" size="sm" asChild disabled={uploading}>
           <label className="cursor-pointer"><ImagePlus /> {uploading ? "Uploading…" : imagePath ? "Image added" : "Product image"}<input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} /></label>
         </Button>
-        <span className="text-[11px] text-muted">Optional</span>
+        <span className="text-xs text-muted">Optional</span>
       </div>
       </MoreOptions>
       {initial ? (
@@ -123,7 +123,7 @@ export function GoalForm({ initial, savedMinor = 0, accounts, onDone }: { initia
           <div><dt className="text-muted">Per week</dt><dd className="font-semibold tabular">{m(plan.weeklyRequiredMinor)}</dd></div>
           <div><dt className="text-muted">Per day</dt><dd className="font-semibold tabular">{m(plan.dailyRequiredMinor)}</dd></div>
         </dl>
-        <p className="mt-2 text-[11px] text-muted">{plan.isOverdue ? "The target date has passed — the full remaining amount is needed now." : `${plan.daysLeft} days · ${plan.weeksLeft} weeks · ${plan.monthsLeft} months left. Progress ${plan.progressPct}%.`}</p>
+        <p className="mt-2 text-xs text-muted">{plan.isOverdue ? "The target date has passed — the full remaining amount is needed now." : `${plan.daysLeft} days · ${plan.weeksLeft} weeks · ${plan.monthsLeft} months left. Progress ${plan.progressPct}%.`}</p>
       </div>
       <div className="flex justify-end"><SubmitButton disabled={uploading}>{initial ? "Save & recalculate" : "Create goal"}</SubmitButton></div>
     </ActionForm>

@@ -1,325 +1,279 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowRight, CalendarClock, CreditCard, Landmark, Lightbulb, PiggyBank, Receipt, Scale, TrendingUp, Wallet, Percent, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowDownLeft, ArrowRight, ArrowUpRight, CalendarClock, Lightbulb } from "lucide-react";
 import { requireWorkspace } from "@/lib/auth";
 import { formatMoney } from "@/lib/finance/money";
-import { changePct } from "@/lib/finance/analytics";
 import { formatDisplayDate, monthLabel } from "@/lib/finance/dates";
 import { levelColor } from "@/lib/finance/budgets";
 import { getOverview } from "@/server/queries/overview";
-import { PageHeader } from "@/components/shared/page-header";
-import { StatCard } from "@/components/shared/stat-card";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { BarList, IncomeExpenseChart, TrendChart } from "@/components/charts/charts";
+import { BarList, IncomeExpenseChart } from "@/components/charts/charts";
 import { TransactionList } from "@/components/transactions/transaction-list";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { GetStarted, type StartStep } from "@/components/dashboard/get-started";
-import { EmptyState } from "@/components/shared/states";
+import { Expandable } from "@/components/shared/expandable";
 import { GOAL_STATUS_LABEL } from "@/lib/finance/goals";
 import { ASSET_CLASS_LABEL } from "@/lib/finance/investments";
 
-export const metadata: Metadata = { title: "Overview" };
+export const metadata: Metadata = { title: "Home" };
 
+/**
+ * Home: understand your money in five seconds.
+ * Balance → money in/out → monthly limit → quick actions → two tips → recent activity.
+ * Everything else sits behind "More details", which is only rendered when opened.
+ */
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
   const ws = await requireWorkspace();
   const sp = await searchParams;
   const o = await getOverview(ws);
   const m = (v: number) => formatMoney(v, ws.settings.currency, { locale: ws.settings.locale });
   const firstName = ws.profile.full_name.split(" ")[0];
-  const hasAnyData = o.series.some((s) => s.incomeMinor || s.expenseMinor) || o.nw.totalAssetsMinor > 0 || o.nw.goals.length > 0;
-  const activeGoals = o.nw.goals.filter((g) => !["cancelled", "completed"].includes(g.derivedStatus));
-
+  const monthName = monthLabel(o.today.slice(0, 7));
   const everIncome = o.series.some((s) => s.incomeMinor > 0);
   const everExpense = o.series.some((s) => s.expenseMinor > 0);
   const steps: StartStep[] = [
     { key: "income", title: "Add your income", why: "Your salary or any money you receive.", href: "/income", done: everIncome },
     { key: "expense", title: "Add an expense", why: "Log what you spend — it takes 10 seconds.", href: "/expenses", done: everExpense },
-    { key: "budget", title: "Set a monthly budget", why: "Get warned before you overspend.", href: "/budgets", done: o.budgetRows.length > 0 },
-    { key: "goal", title: "Plan a goal", why: "A phone, trip or house — see how much to save each month.", href: "/goals?new=1", done: o.nw.goals.length > 0 },
-    { key: "savings", title: "Start a savings pot", why: "E.g. an emergency fund. Money set aside is kept separate.", href: "/savings?new=1", done: o.nw.savings.accounts.length > 0 },
-    { key: "wealth", title: "Add an investment or loan", why: "Completes your net worth picture.", href: "/investments?new=1", done: o.nw.investments.length > 0 || o.nw.debts.length > 0 },
+    { key: "budget", title: "Set a monthly limit", why: "Get warned before you overspend.", href: "/budgets", done: o.budgetRows.length > 0 },
+    { key: "goal", title: "Plan a goal", why: "A phone, trip or house — see how much to save.", href: "/goals?new=1", done: o.nw.goals.length > 0 },
+    { key: "savings", title: "Start a savings pot", why: "For example, an emergency fund.", href: "/savings?new=1", done: o.nw.savings.accounts.length > 0 },
+    { key: "wealth", title: "Add an investment or loan", why: "Completes your net worth.", href: "/investments?new=1", done: o.nw.investments.length > 0 || o.nw.debts.length > 0 },
   ];
-  const monthName = monthLabel(o.today.slice(0, 7));
+  const activeGoals = o.nw.goals.filter((g) => !["cancelled", "completed"].includes(g.derivedStatus));
+  const overall = o.overall;
+  const left = overall ? overall.usage.budgetMinor - overall.usage.spentMinor : 0;
+  const kept = o.thisMonth.incomeMinor - o.thisMonth.expenseMinor;
 
   return (
-    <>
-      <PageHeader
-        title={sp.welcome ? `Welcome to FINANCE OS${firstName ? `, ${firstName}` : ""}` : `Hello${firstName ? `, ${firstName}` : ""}`}
-        description={`Here's your money for ${monthName}. Every number comes from what you've entered.`}
-        help={
-          <>
-            <p>Your <b>available balance</b> is the cash you&apos;ve recorded (income minus expenses), less money moved into savings, goals, investments or loan payments.</p>
-            <p>The <b>safe-to-spend</b> figure takes that balance, subtracts bills and EMIs still due this month and the goal savings you planned, then spreads the rest over the days left.</p>
-            <p>Use the <b>+ Add</b> button (top right, or the round button on your phone) any time to record something new.</p>
-          </>
-        }
-      />
+    <div className="space-y-4">
+      <div className="pb-1 pt-1">
+        <h1 className="text-[28px] font-bold leading-tight tracking-tight">
+          {sp.welcome ? `Welcome to FINANCE OS${firstName ? `, ${firstName}` : ""}` : `Hello${firstName ? `, ${firstName}` : ""}`}
+        </h1>
+        <p className="mt-1 text-base text-muted">Here&apos;s your money for {monthName}.</p>
+      </div>
 
-      <GetStarted steps={steps} />
-
-      <section aria-label="Your balance" className="grid gap-4 lg:grid-cols-3">
-        <Card className="relative overflow-hidden p-5 sm:p-6 lg:col-span-2">
-          <p className="flex items-center gap-2 text-[13px] font-medium text-muted"><Scale className="size-4 text-accent" />Available balance</p>
-          <p className="mt-2 text-4xl font-semibold tracking-tight tabular sm:text-5xl">{m(o.nw.cash.cash_balance_minor)}</p>
-          <p className="mt-1.5 text-[13px] text-muted">Cash you&apos;ve tracked, after savings, investments and loan payments.</p>
-          <dl className="mt-5 grid grid-cols-3 gap-2 border-t border-border pt-4 text-sm">
-            <div className="min-w-0">
-              <dt className="text-xs text-muted">Net worth</dt>
-              <dd className="mt-0.5 truncate font-semibold tabular">{m(o.nw.netWorthMinor)}</dd>
-            </div>
-            <div className="min-w-0">
-              <dt className="text-xs text-muted">Saved so far</dt>
-              <dd className="mt-0.5 truncate font-semibold tabular">{m(o.totalSavingsMinor)}</dd>
-            </div>
-            <div className="min-w-0">
-              <dt className="text-xs text-muted">Savings rate</dt>
-              <dd className="mt-0.5 truncate font-semibold tabular">{o.thisMonth.incomeMinor ? `${o.thisMonth.savingsRatePct}%` : "—"}</dd>
-            </div>
-          </dl>
-        </Card>
-        <Card className={o.safe.shortfallMinor ? "ring-1 ring-warning/40" : ""}>
-          <CardHeader>
-            <div>
-              <CardTitle className="flex items-center gap-1.5"><ShieldCheck className="size-4 text-accent" /> Safe to spend</CardTitle>
-              <CardDescription>Rest of {monthName} · {o.safe.daysLeft} day{o.safe.daysLeft === 1 ? "" : "s"} left</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* A. Available balance */}
+        <Card className="p-5 sm:p-6">
+          <p className="text-sm font-medium text-muted">Available balance</p>
+          <p className="mt-1 text-4xl font-bold tracking-tight tabular sm:text-5xl">{m(o.nw.cash.cash_balance_minor)}</p>
+          <div className="mt-4 rounded-xl bg-card-2 px-4 py-3">
+            <p className="text-sm text-muted">Safe to spend</p>
             {o.safe.shortfallMinor ? (
-              <>
-                <p className="text-3xl font-semibold text-warning tabular">{m(0)}<span className="text-sm font-normal text-muted"> / day</span></p>
-                <p className="mt-1 text-xs text-warning">You&apos;re {m(o.safe.shortfallMinor)} short of covering this month&apos;s bills and goal savings.</p>
-              </>
+              <p className="mt-0.5 text-base font-semibold text-warning">
+                {m(0)} / day — you&apos;re {m(o.safe.shortfallMinor)} short for this month&apos;s bills and savings
+              </p>
             ) : (
-              <>
-                <p className="text-3xl font-semibold text-accent tabular">{m(o.safe.perDayMinor)}<span className="text-sm font-normal text-muted"> / day</span></p>
-                <p className="mt-1 text-xs text-muted">{m(o.safe.totalMinor)} left for the month</p>
-              </>
+              <p className="mt-0.5 text-base">
+                <span className="text-xl font-semibold tabular">{m(o.safe.perDayMinor)}</span>
+                <span className="text-muted"> / day for the next {o.safe.daysLeft} day{o.safe.daysLeft === 1 ? "" : "s"}</span>
+              </p>
             )}
-            <dl className="mt-3 space-y-1 border-t border-border pt-3 text-xs">
-              <div className="flex justify-between gap-2"><dt className="text-muted">Available cash</dt><dd className="tabular">{m(o.nw.cash.cash_balance_minor)}</dd></div>
-              <div className="flex justify-between gap-2"><dt className="text-muted">− Bills & EMIs due</dt><dd className="tabular">{m(o.safe.billsThisMonthMinor)}</dd></div>
-              <div className="flex justify-between gap-2"><dt className="text-muted">− Goal savings to set aside</dt><dd className="tabular">{m(o.safe.plannedSavingsMinor)}</dd></div>
-            </dl>
-          </CardContent>
+          </div>
         </Card>
-      </section>
 
-      <Card className="mt-4 p-2">
-        <p className="px-3 pb-1 pt-2 text-xs font-medium text-muted">What would you like to do?</p>
+        {/* B. Money in / money out */}
+        <Card className="p-5 sm:p-6">
+          <p className="text-sm font-medium text-muted">This month</p>
+          <div className="mt-3 grid grid-cols-2 divide-x divide-border">
+            <div className="pr-4">
+              <p className="flex items-center gap-1.5 text-sm text-muted"><ArrowDownLeft className="size-4 text-success" aria-hidden /> Money in</p>
+              <p className="mt-1 text-2xl font-semibold tabular" aria-label={`Money in this month ${m(o.thisMonth.incomeMinor)}`}>{m(o.thisMonth.incomeMinor)}</p>
+            </div>
+            <div className="pl-4">
+              <p className="flex items-center gap-1.5 text-sm text-muted"><ArrowUpRight className="size-4 text-danger" aria-hidden /> Money out</p>
+              <p className="mt-1 text-2xl font-semibold tabular" aria-label={`Money out this month ${m(o.thisMonth.expenseMinor)}`}>{m(o.thisMonth.expenseMinor)}</p>
+            </div>
+          </div>
+          <p className="mt-4 border-t border-border pt-3 text-base text-muted">
+            {o.thisMonth.incomeMinor
+              ? kept >= 0
+                ? <>You kept <span className="font-semibold text-foreground">{m(kept)}</span> ({o.thisMonth.savingsRatePct}% of what you earned).</>
+                : <>You spent <span className="font-semibold text-danger">{m(-kept)}</span> more than you earned.</>
+              : "Add your income to see how much you keep each month."}
+          </p>
+        </Card>
+      </div>
+
+      {/* C. Monthly limit */}
+      <Card className="p-5 sm:p-6">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-muted">{overall?.budget.period === "yearly" ? "This year's limit" : "Monthly limit"}</p>
+            {overall ? (
+              <p className="mt-1 text-lg">
+                You&apos;ve spent <span className="font-semibold tabular">{m(overall.usage.spentMinor)}</span> of <span className="font-semibold tabular">{m(overall.usage.budgetMinor)}</span>
+              </p>
+            ) : (
+              <p className="mt-1 text-base">Set a spending limit and we&apos;ll warn you before you go over.</p>
+            )}
+          </div>
+          <Button variant={overall ? "ghost" : "default"} size="sm" asChild>
+            <Link href="/budgets">{overall ? "Details" : "Set a limit"}</Link>
+          </Button>
+        </div>
+        {overall ? (
+          <>
+            <Progress className="mt-4 h-3" value={overall.usage.utilizationPct} tone={levelColor(overall.usage.level)} label="Monthly limit used" />
+            <div className="mt-2 flex flex-wrap justify-between gap-x-4 gap-y-1 text-base">
+              <span className={left < 0 ? "font-semibold text-danger" : "font-semibold"}>
+                {left >= 0 ? `${m(left)} left` : `${m(-left)} over your limit`}
+              </span>
+              {overall.budget.period === "monthly" ? <span className="text-muted">{o.safe.daysLeft} day{o.safe.daysLeft === 1 ? "" : "s"} to go</span> : null}
+            </div>
+            {overall.usage.utilizationPct >= 90 && left >= 0 ? (
+              <p className="mt-3 flex items-center gap-2 rounded-xl bg-warning-soft px-3 py-2 text-sm font-medium text-warning">
+                <AlertTriangle className="size-4 shrink-0" aria-hidden /> Careful — you&apos;ve used {overall.usage.utilizationPct}% of your limit.
+              </p>
+            ) : null}
+          </>
+        ) : null}
+      </Card>
+
+      {/* D. Quick actions */}
+      <Card className="p-2 sm:p-3">
         <QuickActions />
       </Card>
 
-      <h2 className="mb-2.5 mt-7 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">This month</h2>
-      <section aria-label="This month" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Income this month" value={m(o.thisMonth.incomeMinor)} icon={Wallet} change={changePct(o.thisMonth.incomeMinor, o.lastMonth.incomeMinor)} hint="vs last month" />
-        <StatCard label="Expenses this month" value={m(o.thisMonth.expenseMinor)} icon={Receipt} change={changePct(o.thisMonth.expenseMinor, o.lastMonth.expenseMinor)} changeGood="down" hint="vs last month" />
-        <StatCard label="Left after expenses" value={m(o.thisMonth.incomeMinor - o.thisMonth.expenseMinor)} icon={Scale} hint="Income − expenses" />
-        <StatCard label="Savings rate" value={o.thisMonth.incomeMinor ? `${o.thisMonth.savingsRatePct}%` : "—"} icon={Percent} hint={o.thisMonth.incomeMinor ? "Of this month's income" : "Add income to calculate"} />
-      </section>
+      <GetStarted steps={steps} />
 
-      <h2 className="mb-2.5 mt-7 text-[13px] font-semibold uppercase tracking-[0.08em] text-muted">Everything you own &amp; owe</h2>
-      <section aria-label="Financial overview" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Total savings" value={m(o.totalSavingsMinor)} icon={PiggyBank} hint="Savings pots + goal money" />
-        <StatCard label="Investments" value={m(o.portfolio.currentValueMinor)} icon={TrendingUp} hint={o.portfolio.investedMinor ? `${o.portfolio.returnPct >= 0 ? "+" : ""}${o.portfolio.returnPct}% unrealised` : "Current value"} />
-        <StatCard label="Outstanding debts" value={m(o.outstandingDebtMinor)} icon={CreditCard} hint={`${o.nw.debts.filter((d) => d.outstandingMinor > 0).length} active`} />
-        <StatCard label="Net worth" value={m(o.nw.netWorthMinor)} icon={Landmark} hint="What you own − what you owe" highlight />
-      </section>
-
-      <div className="mt-7 grid gap-4">
-        <Card>
-          <CardHeader>
-            <div>
-              <CardTitle className="flex items-center gap-1.5"><CalendarClock className="size-4 text-muted" /> Coming up in the next 30 days</CardTitle>
-              <CardDescription>Recurring bills, salary and loan EMIs</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" asChild><Link href="/transactions?view=recurring">Manage</Link></Button>
-          </CardHeader>
-          <CardContent>
-            {o.upcoming.length ? (
-              <ul className="divide-y divide-border">
-                {o.upcoming.slice(0, 7).map((u) => (
-                  <li key={u.key} className="flex items-center gap-3 py-2.5 text-sm">
-                    <span className="w-16 shrink-0 text-xs text-muted">{formatDisplayDate(u.date, "dd MMM")}</span>
-                    <Link href={u.link} className="min-w-0 flex-1 truncate hover:underline">{u.title}</Link>
-                    <span className={u.kind === "recurring_income" ? "font-medium text-success tabular" : "font-medium tabular"}>{u.kind === "recurring_income" ? "+" : "−"}{m(u.amountMinor)}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="py-6 text-center text-xs text-muted">Nothing scheduled yet. When adding rent, salary or a subscription, tick &ldquo;This repeats&rdquo; — or add a loan with an EMI due date — and it will show up here.</p>
-            )}
-          </CardContent>
+      {/* E. One or two tips */}
+      {o.insights.length ? (
+        <Card className="p-5 sm:p-6">
+          <p className="flex items-center gap-2 text-sm font-medium text-muted"><Lightbulb className="size-4 text-accent" aria-hidden /> Tips for you</p>
+          <ul className="mt-3 space-y-3">
+            {o.insights.slice(0, 2).map((i) => (
+              <li key={i.id} className="text-base">
+                <p className="font-medium">{i.link ? <Link href={i.link} className="hover:underline">{i.title}</Link> : i.title}</p>
+                <p className="text-sm text-muted">{i.detail}</p>
+              </li>
+            ))}
+          </ul>
         </Card>
-      </div>
-
-      {!hasAnyData ? (
-        <EmptyState className="mt-6" icon={Lightbulb} title="Your dashboard fills in as you go" description="Add your income and a few expenses, set a budget, or create a savings goal. Every number here is calculated from your own records — nothing is estimated or made up." />
       ) : null}
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <div>
-              <CardTitle>Income vs expenses</CardTitle>
-              <CardDescription>Last 12 months</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" asChild><Link href="/reports">Reports <ArrowRight /></Link></Button>
-          </CardHeader>
-          <CardContent>
-            <IncomeExpenseChart data={o.series.map((s) => ({ label: monthLabel(s.month), incomeMinor: s.incomeMinor, expenseMinor: s.expenseMinor }))} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <div>
-              <CardTitle>Where your money went</CardTitle>
-              <CardDescription>{monthLabel(o.today.slice(0, 7))} by category</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <BarList items={o.spendThis.byCategory.map((c) => ({ key: c.id ?? "none", label: c.name, valueMinor: c.amountMinor }))} emptyLabel="No expenses recorded this month" max={6} />
-          </CardContent>
-        </Card>
-      </div>
+      {/* F. Recent activity */}
+      <Card className="p-5 sm:p-6">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold">Recent activity</h2>
+          <Button variant="ghost" size="sm" asChild><Link href="/transactions">See all <ArrowRight aria-hidden /></Link></Button>
+        </div>
+        <TransactionList transactions={o.recentTransactions.slice(0, 5)} emptyTitle="Nothing recorded yet" emptyDescription="Tap Add expense or Add income above to get started." />
+      </Card>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <div>
-              <CardTitle>Monthly spending trend</CardTitle>
-              <CardDescription>Expenses per month</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <TrendChart data={o.series.map((s) => ({ label: monthLabel(s.month), valueMinor: s.expenseMinor }))} name="Expenses" />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <div>
-              <CardTitle>Insights</CardTitle>
-              <CardDescription>Derived from your data</CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {o.insights.length ? (
-              <ul className="space-y-3">
-                {o.insights.slice(0, 5).map((i) => (
-                  <li key={i.id} className="flex gap-2.5">
-                    <span className={`mt-1.5 size-1.5 shrink-0 rounded-full ${i.tone === "positive" ? "bg-success" : i.tone === "negative" ? "bg-danger" : i.tone === "warning" ? "bg-warning" : "bg-muted"}`} aria-hidden />
-                    <div>
-                      <p className="text-sm font-medium leading-snug">{i.link ? <Link href={i.link} className="hover:underline">{i.title}</Link> : i.title}</p>
-                      <p className="mt-0.5 text-xs text-muted">{i.detail}</p>
-                    </div>
+      {/* Everything else — rendered only when opened. */}
+      <Expandable title="More details" description="Bills coming up, charts, goals, savings and investments">
+        <div className="space-y-6">
+          <section>
+            <h3 className="flex items-center gap-2 text-base font-semibold"><CalendarClock className="size-4 text-muted" aria-hidden /> Coming up in the next 30 days</h3>
+            {o.upcoming.length ? (
+              <ul className="mt-2 divide-y divide-border">
+                {o.upcoming.slice(0, 7).map((u) => (
+                  <li key={u.key} className="flex items-center gap-3 py-3 text-base">
+                    <span className="w-16 shrink-0 text-sm text-muted">{formatDisplayDate(u.date, "dd MMM")}</span>
+                    <Link href={u.link} className="min-w-0 flex-1 truncate hover:underline">{u.title}</Link>
+                    <span className={u.kind === "recurring_income" ? "font-semibold text-success tabular" : "font-semibold tabular"}>{u.kind === "recurring_income" ? "+" : "−"}{m(u.amountMinor)}</span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="py-6 text-center text-xs text-muted">Insights appear once you have a month or two of records.</p>
+              <p className="mt-2 text-sm text-muted">Nothing scheduled. When you add rent, salary or a subscription, tick &ldquo;This repeats&rdquo; and it will show here.</p>
             )}
-          </CardContent>
-        </Card>
-      </div>
+          </section>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <div>
-              <CardTitle>Budget utilisation</CardTitle>
-              <CardDescription>This month</CardDescription>
+          <section>
+            <h3 className="text-base font-semibold">What you own and owe</h3>
+            <dl className="mt-2 grid grid-cols-2 gap-3 text-base">
+              {[
+                ["Savings", m(o.totalSavingsMinor)],
+                ["Investments", m(o.portfolio.currentValueMinor)],
+                ["Loans you owe", m(o.outstandingDebtMinor)],
+                ["Net worth", m(o.nw.netWorthMinor)],
+              ].map(([k, v]) => (
+                <div key={k} className="rounded-xl bg-card-2 px-4 py-3">
+                  <dt className="text-sm text-muted">{k}</dt>
+                  <dd className="mt-0.5 font-semibold tabular">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+
+          <section>
+            <h3 className="text-base font-semibold">Where your money went in {monthName}</h3>
+            <div className="mt-2">
+              <BarList items={o.spendThis.byCategory.map((c) => ({ key: c.id ?? "none", label: c.name, valueMinor: c.amountMinor }))} emptyLabel="No spending recorded this month" max={6} />
             </div>
-            <Button variant="ghost" size="sm" asChild><Link href="/budgets">Manage</Link></Button>
-          </CardHeader>
-          <CardContent>
-            {o.budgetRows.length ? (
-              <ul className="space-y-3">
-                {o.budgetRows.slice(0, 6).map((r) => {
-                  const tone = levelColor(r.usage.level);
-                  return (
-                    <li key={r.budget.id}>
-                      <div className="mb-1 flex justify-between text-xs">
-                        <span className="font-medium">{r.budget.name}</span>
-                        <span className="text-muted tabular">{m(r.usage.spentMinor)} / {m(r.usage.budgetMinor)} · {r.usage.utilizationPct}%</span>
-                      </div>
-                      <Progress value={r.usage.utilizationPct} tone={tone} label={`${r.budget.name} budget used`} />
-                    </li>
-                  );
-                })}
+          </section>
+
+          <section>
+            <h3 className="text-base font-semibold">Money in and out — last 12 months</h3>
+            <div className="mt-2">
+              <IncomeExpenseChart data={o.series.map((s) => ({ label: monthLabel(s.month), incomeMinor: s.incomeMinor, expenseMinor: s.expenseMinor }))} />
+            </div>
+          </section>
+
+          {o.budgetRows.some((r) => r.budget.expense_category_id) ? (
+            <section>
+              <h3 className="text-base font-semibold">Category limits</h3>
+              <ul className="mt-2 space-y-3">
+                {o.budgetRows.filter((r) => r.budget.expense_category_id).slice(0, 6).map((r) => (
+                  <li key={r.budget.id}>
+                    <div className="mb-1 flex justify-between gap-2 text-sm">
+                      <span className="font-medium">{r.budget.name}</span>
+                      <span className="text-muted tabular">{m(r.usage.spentMinor)} of {m(r.usage.budgetMinor)}</span>
+                    </div>
+                    <Progress value={r.usage.utilizationPct} tone={levelColor(r.usage.level)} label={`${r.budget.name} limit used`} />
+                  </li>
+                ))}
               </ul>
-            ) : (
-              <p className="py-6 text-center text-xs text-muted">No budgets yet. <Link className="text-accent" href="/budgets">Create one</Link></p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <div>
-              <CardTitle>Goals & savings progress</CardTitle>
-              <CardDescription>{activeGoals.length} active goals</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" asChild><Link href="/goals">All goals</Link></Button>
-          </CardHeader>
-          <CardContent>
-            {o.nw.goals.length || o.nw.savings.accounts.length ? (
-              <ul className="space-y-3">
+            </section>
+          ) : null}
+
+          {activeGoals.length ? (
+            <section>
+              <h3 className="text-base font-semibold">Goals</h3>
+              <ul className="mt-2 space-y-3">
                 {activeGoals.slice(0, 4).map((g) => (
                   <li key={g.id}>
-                    <div className="mb-1 flex justify-between gap-2 text-xs">
+                    <div className="mb-1 flex justify-between gap-2 text-sm">
                       <Link href={`/goals/${g.id}`} className="truncate font-medium hover:underline">{g.name}</Link>
                       <span className="shrink-0 text-muted tabular">{g.plan.progressPct}%</span>
                     </div>
-                    <Progress value={g.plan.progressPct} tone={g.derivedStatus === "at_risk" ? "warning" : "accent"} />
-                    <p className="mt-1 text-[11px] text-muted">{GOAL_STATUS_LABEL[g.derivedStatus]} · {m(g.plan.monthlyRequiredMinor)}/mo needed · due {formatDisplayDate(g.target_date)}</p>
-                  </li>
-                ))}
-                {o.nw.savings.accounts.filter((a) => a.target_amount_minor).slice(0, 2).map((a) => (
-                  <li key={a.id}>
-                    <div className="mb-1 flex justify-between text-xs">
-                      <span className="font-medium">{a.name}</span>
-                      <span className="text-muted tabular">{m(a.balanceMinor)} / {m(a.target_amount_minor!)}</span>
-                    </div>
-                    <Progress value={(a.balanceMinor / a.target_amount_minor!) * 100} tone="success" />
+                    <Progress value={g.plan.progressPct} tone={g.derivedStatus === "at_risk" ? "warning" : "accent"} label={`${g.name} progress`} />
+                    <p className="mt-1 text-sm text-muted">{GOAL_STATUS_LABEL[g.derivedStatus]} · save {m(g.plan.monthlyRequiredMinor)} a month · by {formatDisplayDate(g.target_date)}</p>
                   </li>
                 ))}
               </ul>
-            ) : (
-              <p className="py-6 text-center text-xs text-muted">No goals yet. <Link className="text-accent" href="/goals?new=1">Plan your first goal</Link></p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <div>
-              <CardTitle>Investment allocation</CardTitle>
-              <CardDescription>By current value</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" asChild><Link href="/investments">Portfolio</Link></Button>
-          </CardHeader>
-          <CardContent>
-            <BarList items={o.portfolio.allocation.map((a) => ({ key: a.asset_type, label: ASSET_CLASS_LABEL[a.asset_type], valueMinor: a.valueMinor }))} emptyLabel="No investments recorded" />
-          </CardContent>
-        </Card>
-      </div>
+            </section>
+          ) : null}
 
-      <Card className="mt-4">
-        <CardHeader>
-          <div>
-            <CardTitle>Recent transactions</CardTitle>
-            <CardDescription>Your latest entries</CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
-            {o.thisMonth.expectedIncomeMinor > 0 ? <Badge variant="warning">{m(o.thisMonth.expectedIncomeMinor)} expected</Badge> : null}
-            <Button variant="ghost" size="sm" asChild><Link href="/transactions">View all <ArrowRight /></Link></Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <TransactionList transactions={o.recentTransactions} />
-        </CardContent>
-      </Card>
-    </>
+          {o.portfolio.allocation.length ? (
+            <section>
+              <h3 className="text-base font-semibold">Investments by type</h3>
+              <div className="mt-2">
+                <BarList items={o.portfolio.allocation.map((a) => ({ key: a.asset_type, label: ASSET_CLASS_LABEL[a.asset_type], valueMinor: a.valueMinor }))} emptyLabel="No investments recorded" />
+              </div>
+            </section>
+          ) : null}
+
+          {o.insights.length > 2 ? (
+            <section>
+              <h3 className="text-base font-semibold">More tips</h3>
+              <ul className="mt-2 space-y-3">
+                {o.insights.slice(2, 6).map((i) => (
+                  <li key={i.id} className="text-base">
+                    <p className="font-medium">{i.title}</p>
+                    <p className="text-sm text-muted">{i.detail}</p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+        </div>
+      </Expandable>
+    </div>
   );
 }

@@ -84,11 +84,11 @@ export function Field({ label, name, hint, children, className }: { label: strin
       <Label htmlFor={name}>{label}</Label>
       {children}
       {error ? (
-        <p id={`${name}-error`} className="text-xs text-danger" role="alert">
+        <p id={`${name}-error`} className="text-sm font-medium text-danger" role="alert">
           {error}
         </p>
       ) : hint ? (
-        <p className="text-xs text-muted">{hint}</p>
+        <p className="text-sm text-muted">{hint}</p>
       ) : null}
     </div>
   );
@@ -103,13 +103,23 @@ export function TextField({ label, name, hint, className, ...props }: React.Inpu
   );
 }
 
-export function MoneyField({ label, name, hint, currencySymbol, className, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; name: string; hint?: React.ReactNode; currencySymbol: string }) {
+export function MoneyField({ label, name, hint, currencySymbol, className, large, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; name: string; hint?: React.ReactNode; currencySymbol: string; large?: boolean }) {
   const error = useFieldError(name);
   return (
     <Field label={label} name={name} hint={hint} className={className}>
       <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted">{currencySymbol}</span>
-        <Input id={name} name={name} inputMode="decimal" autoComplete="off" placeholder="0" className="pl-8 tabular" aria-invalid={!!error || undefined} {...props} />
+        <span className={cn("pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted", large ? "left-4 text-2xl font-semibold" : "left-3.5 text-base")}>{currencySymbol}</span>
+        <Input
+          id={name}
+          name={name}
+          inputMode="decimal"
+          autoComplete="off"
+          placeholder="0"
+          className={cn("tabular", large ? "h-16 pl-11 text-3xl font-semibold" : "pl-9")}
+          aria-invalid={!!error || undefined}
+          aria-describedby={error ? `${name}-error` : undefined}
+          {...props}
+        />
       </div>
     </Field>
   );
@@ -137,11 +147,11 @@ export function TextAreaField({ label, name, hint, className, ...props }: React.
 
 export function CheckboxField({ label, name, description, defaultChecked, onChange }: { label: string; name: string; description?: string; defaultChecked?: boolean; onChange?: (checked: boolean) => void }) {
   return (
-    <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-background-2 p-3">
-      <input type="checkbox" name={name} defaultChecked={defaultChecked} onChange={(e) => onChange?.(e.target.checked)} className="mt-0.5 size-4 accent-[var(--accent)]" />
+    <label className="flex min-h-12 cursor-pointer items-start gap-3 rounded-xl border border-border bg-background-2 p-3.5">
+      <input type="checkbox" name={name} defaultChecked={defaultChecked} onChange={(e) => onChange?.(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--accent)]" />
       <span>
-        <span className="block text-sm font-medium">{label}</span>
-        {description ? <span className="block text-xs text-muted">{description}</span> : null}
+        <span className="block text-base font-medium">{label}</span>
+        {description ? <span className="block text-sm text-muted">{description}</span> : null}
       </span>
     </label>
   );
@@ -179,12 +189,12 @@ export function MoreOptions({ children, summary, defaultOpen = false }: { childr
     <details
       open={userOpen || hasErrors}
       onToggle={(e) => setUserOpen(e.currentTarget.open)}
-      className="group rounded-2xl border border-border bg-card-2/40 [&_summary::-webkit-details-marker]:hidden"
+      className="group rounded-2xl border border-border [&_summary::-webkit-details-marker]:hidden"
     >
-      <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-medium select-none">
-        <span className="flex size-5 items-center justify-center rounded-full bg-card-2 text-xs text-muted transition-transform group-open:rotate-45">+</span>
-        More options
-        {summary ? <span className="truncate text-xs font-normal text-muted">· {summary}</span> : null}
+      <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 px-4 py-3 text-base font-medium select-none">
+        <span className="flex size-6 items-center justify-center rounded-full bg-card-2 text-sm text-foreground transition-transform group-open:rotate-45" aria-hidden>+</span>
+        More options (optional)
+        {summary ? <span className="hidden truncate text-sm font-normal text-muted sm:inline">· {summary}</span> : null}
       </summary>
       <div className="space-y-4 px-4 pb-4 pt-1">{children}</div>
     </details>

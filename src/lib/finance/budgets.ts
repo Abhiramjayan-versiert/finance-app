@@ -54,6 +54,8 @@ export interface ExpenseLike {
   amount_minor: number;
   expense_category_id: string | null;
   occurred_on: string;
+  /** When present, only "expense" rows count — callers may pass mixed transaction lists. */
+  type?: string;
 }
 
 /**
@@ -64,6 +66,7 @@ export function spentForBudget(b: BudgetLike, expenses: ExpenseLike[], from: str
   const ids = b.expense_category_id ? new Set([b.expense_category_id, ...(childrenOf.get(b.expense_category_id) ?? [])]) : null;
   let total = 0;
   for (const e of expenses) {
+    if (e.type !== undefined && e.type !== "expense") continue;
     if (e.occurred_on < from || e.occurred_on > to) continue;
     if (ids && (!e.expense_category_id || !ids.has(e.expense_category_id))) continue;
     total += e.amount_minor;

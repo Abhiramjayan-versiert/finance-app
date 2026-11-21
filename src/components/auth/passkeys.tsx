@@ -97,7 +97,7 @@ export function PasskeySignIn({ next }: { next?: string }) {
       <Button type="button" variant="secondary" className="w-full" onClick={signIn} disabled={busy}>
         {busy ? <Loader2 className="animate-spin" /> : <Icon />} Sign in with {label === "a passkey" ? "a passkey" : label}
       </Button>
-      <p className="mt-2 text-center text-[11px] text-muted">Set it up first in Settings → Security after signing in with your password.</p>
+      <p className="mt-2 text-center text-xs text-muted">Set it up first in Settings → Security after signing in with your password.</p>
     </div>
   );
 }
@@ -153,7 +153,7 @@ export function PasskeyManager({ passkeys }: { passkeys: PasskeyRow[] }) {
               <KeyRound className="size-4 shrink-0 text-muted" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm">{p.name}</p>
-                <p className="text-[11px] text-muted">Added {fmt(p.created_at)}{p.last_used_at ? ` · last used ${fmt(p.last_used_at)}` : ""}</p>
+                <p className="text-xs text-muted">Added {fmt(p.created_at)}{p.last_used_at ? ` · last used ${fmt(p.last_used_at)}` : ""}</p>
               </div>
               <ConfirmDialog
                 trigger={<Button variant="ghost" size="icon-sm" aria-label={`Remove ${p.name}`}><Trash2 /></Button>}

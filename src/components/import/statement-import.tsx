@@ -197,7 +197,7 @@ export function StatementImport() {
                 </Table>
               ) : <p className="py-6 text-center text-xs text-muted">No readable rows yet — check the column mapping and date format.</p>}
               {parsed && parsed.rows.length > 20 ? <p className="mt-2 text-xs text-muted">Showing the first 20 of {parsed.rows.length} rows.</p> : null}
-              <p className="mt-3 text-[11px] text-muted">Re-importing the same statement is safe: rows that already exist are skipped automatically.</p>
+              <p className="mt-3 text-xs text-muted">Re-importing the same statement is safe: rows that already exist are skipped automatically.</p>
             </CardContent>
           </Card>
         </>

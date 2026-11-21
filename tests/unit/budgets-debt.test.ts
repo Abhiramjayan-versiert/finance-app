@@ -74,3 +74,19 @@ describe("EMI & debt", () => {
     expect(repaymentProgress(1000, 250)).toBe(75);
   });
 });
+
+describe("spentForBudget with mixed transactions", () => {
+  const txs = [
+    { type: "income", amount_minor: 9_200_000, expense_category_id: null, occurred_on: "2026-11-01" },
+    { type: "expense", amount_minor: 2_400_000, expense_category_id: "rent", occurred_on: "2026-11-02" },
+    { type: "expense", amount_minor: 210_000, expense_category_id: "food", occurred_on: "2026-11-03" },
+  ];
+  const none = new Map<string, string[]>();
+  const budget = (expense_category_id: string | null) => ({ id: "b", period: "monthly" as const, amount_minor: 4_000_000, start_date: "2026-01-01", end_date: null, expense_category_id });
+  it("an overall limit counts spending only, never income", () => {
+    expect(spentForBudget(budget(null), txs, "2026-11-01", "2026-11-30", none)).toBe(2_610_000);
+  });
+  it("a category limit counts only that category", () => {
+    expect(spentForBudget(budget("food"), txs, "2026-11-01", "2026-11-30", none)).toBe(210_000);
+  });
+});

@@ -50,7 +50,7 @@ function InvestmentForm({ onDone }: { onDone: () => void }) {
         <TextAreaField label="Notes" name="notes" rows={2} />
       </MoreOptions>
       <CheckboxField name="fromCash" label="Paid from my tracked cash balance" description="Leave unticked for investments made before you started tracking." />
-      <p className="text-[11px] text-muted">FINANCE OS does not fetch live prices. Update the current value whenever you check your holdings.</p>
+      <p className="text-xs text-muted">FINANCE OS does not fetch live prices. Update the current value whenever you check your holdings.</p>
       <div className="flex justify-end"><SubmitButton>Add investment</SubmitButton></div>
     </ActionForm>
   );
