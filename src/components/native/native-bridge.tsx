@@ -139,7 +139,8 @@ export function NativeBridge() {
       const KEY = "fos.device";
       const stored = (await Preferences.get({ key: KEY })).value;
       if (cancelled) return;
-      if (pathname === "/login") {
+      // The app opens at "/" (the public home page when there is no session) or is sent to /login.
+      if (pathname === "/login" || pathname === "/") {
         const params = new URLSearchParams(window.location.search);
         if (params.get("signedOut")) {
           // Deliberate sign-out: forget this device.
