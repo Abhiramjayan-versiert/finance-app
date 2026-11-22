@@ -1,0 +1,38 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "FINANCE OS",
+  "version": "1.0.0",
+  "identifier": "com.versiert.financeos.desktop",
+  "build": {
+    "frontendDist": "../mobile/www"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "FINANCE OS",
+        "url": "https://finance-os-versiert-solutions.vercel.app/dashboard",
+        "width": 1280,
+        "height": 840,
+        "minWidth": 380,
+        "minHeight": 600,
+        "center": true,
+        "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15 FinanceOSDesktop/1.0.0"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Finance",
+    "shortDescription": "Personal finance planner",
+    "longDescription": "Track spending, budgets, goals, savings, investments and loans.",
+    "publisher": "Versiert Solutions",
+    "copyright": "© Versiert Solutions",
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
+  }
+}

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/alert-dialog";
 import { deletePasskeyAction, passkeyLoginOptionsAction, passkeyLoginVerifyAction, passkeyRegisterOptionsAction, passkeyRegisterVerifyAction } from "@/server/actions/passkeys";
 
-type Platform = "apple" | "android" | "windows" | "other";
+export type Platform = "apple" | "android" | "windows" | "other";
 
 function detectPlatform(): Platform {
   const ua = navigator.userAgent;
@@ -41,7 +41,7 @@ function deviceName(p: Platform) {
 const noop = () => () => {};
 let cached: { ok: boolean; platform: Platform } | null = null;
 const SERVER = { ok: false, platform: "other" as Platform };
-function usePasskeySupport() {
+export function usePasskeySupport() {
   return useSyncExternalStore(
     noop,
     () => {

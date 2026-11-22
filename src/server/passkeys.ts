@@ -135,10 +135,13 @@ export async function verifyRegistration(uid: string, response: RegistrationResp
   return { id, name };
 }
 
-export async function authenticationOptions() {
+export async function authenticationOptions(forUid?: string) {
   const { rpID } = await relyingParty();
-  // Usernameless: the device offers the user's passkeys for this site.
-  const options = await generateAuthenticationOptions({ rpID, userVerification: "required", allowCredentials: [] });
+  // Sign-in is usernameless (the device offers this site's passkeys). Unlocking
+  // the app narrows the choice to the signed-in user's own passkeys.
+  const allowCredentials = forUid ? (await listPasskeys(forUid)).map((p) => ({ id: p.credential_id, transports: p.transports })) : [];
+  if (forUid && !allowCredentials.length) throw new PasskeyError("Set up fingerprint or Face ID sign-in on this device first.");
+  const options = await generateAuthenticationOptions({ rpID, userVerification: "required", allowCredentials });
   await saveChallenge(options.challenge, "login", null);
   return options;
 }

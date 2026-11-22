@@ -108,7 +108,8 @@ export function NativeBridge() {
             return;
           }
           const p = pathRef.current;
-          if (p === "/dashboard" || p === "/" || p === "/login") App.exitApp();
+          // Like other Android apps: leave to the home screen, keep the app (and sign-in) alive.
+          if (p === "/dashboard" || p === "/" || p === "/login") App.minimizeApp();
           else if (canGoBack) window.history.back();
           else router.push("/dashboard");
         }),

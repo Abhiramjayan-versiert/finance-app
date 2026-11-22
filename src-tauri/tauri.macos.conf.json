@@ -1,0 +1,3 @@
+{
+  "app": { "windows": [{ "label": "main", "title": "FINANCE OS", "url": "https://finance-os-versiert-solutions.vercel.app/dashboard", "width": 1280, "height": 840, "minWidth": 380, "minHeight": 600, "center": true, "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15 FinanceOSDesktop/1.0.0" }] }
+}

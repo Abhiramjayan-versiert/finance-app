@@ -1,0 +1,62 @@
+# Builds the FINANCE OS desktop apps (Windows .exe/.msi, macOS .dmg, Linux
+# AppImage/.deb) on GitHub-hosted machines and attaches them to a draft
+# GitHub Release. Run it manually: Actions → "Desktop apps" → Run workflow.
+# The desktop app loads the live site, so website updates need no rebuild;
+# rebuild only when src-tauri/ changes (bump "version" in tauri.conf.json and
+# NATIVE_RELEASES.desktop in src/lib/releases.ts).
+name: Desktop apps
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            args: ""
+          - platform: macos-latest
+            args: "--target universal-apple-darwin"
+          - platform: ubuntu-22.04
+            args: ""
+    runs-on: ${{ matrix.platform }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Linux build dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Generate app icons
+        run: npx -y @tauri-apps/cli@2.12.6 icon src-tauri/app-icon.png
+
+      - name: Build and attach to a draft release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: .
+          tauriScript: npx -y @tauri-apps/cli@2.12.6
+          tagName: desktop-v__VERSION__
+          releaseName: "FINANCE OS desktop v__VERSION__"
+          releaseBody: "Download the installer for your computer below. Windows: FINANCE.OS_x64-setup.exe. Mac: the .dmg file."
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}

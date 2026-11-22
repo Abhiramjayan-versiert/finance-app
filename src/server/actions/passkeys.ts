@@ -3,7 +3,7 @@
 import type { AuthenticationResponseJSON, PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON, RegistrationResponseJSON } from "@simplewebauthn/server";
 import { revalidatePath } from "next/cache";
 import { adminAuth, getStore } from "@/lib/firebase/admin";
-import { refreshSession } from "@/lib/firebase/session";
+import { clearUnlocked, markUnlocked, refreshSession } from "@/lib/firebase/session";
 import { actionWorkspace, AuthError } from "@/lib/auth";
 import { userPath } from "@/lib/firebase/store";
 import { clientIp, rateLimit } from "@/lib/security/rate-limit";
@@ -76,6 +76,35 @@ export async function passkeyLoginVerifyAction(response: AuthenticationResponseJ
     if (!(e instanceof PasskeyError)) await logServerError(e, "passkeys/login-verify", null, "auth");
     return failure(e, "Face ID sign-in failed. Use your password instead.");
   }
+}
+
+/** App lock (web & desktop): challenge limited to the signed-in user's passkeys. */
+export async function passkeyUnlockOptionsAction(): Promise<R<PublicKeyCredentialRequestOptionsJSON>> {
+  try {
+    const ws = await actionWorkspace();
+    if (!(await rateLimit("passkey-unlock", [ws.userId], 60, 900))) return { ok: false, error: TOO_MANY };
+    return { ok: true, data: await authenticationOptions(ws.userId) };
+  } catch (e) {
+    return failure(e, "Unlock isn't available right now.");
+  }
+}
+
+/** App lock: succeeds only if the passkey belongs to the account that is signed in. */
+export async function passkeyUnlockVerifyAction(response: AuthenticationResponseJSON): Promise<R> {
+  try {
+    const ws = await actionWorkspace();
+    const uid = await verifyAuthentication(response);
+    if (uid !== ws.userId) return { ok: false, error: "That passkey belongs to a different account." };
+    await markUnlocked();
+    return { ok: true, data: undefined };
+  } catch (e) {
+    return failure(e, "Couldn't confirm it's you. Try again.");
+  }
+}
+
+/** App lock engaged after time away: forget the unlock so a reload can't skip it. */
+export async function appLockEngagedAction(): Promise<void> {
+  await clearUnlocked();
 }
 
 export async function deletePasskeyAction(id: string): Promise<R> {

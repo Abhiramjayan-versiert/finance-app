@@ -70,3 +70,43 @@ test("a device with no passkey for this account cannot sign in", async ({ page }
   await expect(page).toHaveURL(/\/login/);
   await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
 });
+
+test("app lock: turn it on, it locks on a fresh session, unlock with the fingerprint", async ({ page, context }) => {
+  await withAuthenticator(page);
+  const u = { name: "Lena Lock", email: `lena.${Date.now()}@example.com`, password: "Str0ngPass!" };
+  await page.goto("/register");
+  await page.getByLabel("Full name").fill(u.name);
+  await page.getByLabel("Email").fill(u.email);
+  await page.getByLabel("Password", { exact: true }).fill(u.password);
+  await page.getByLabel("Confirm password").fill(u.password);
+  await page.getByText("I accept the Terms and Privacy Policy").click();
+  await page.getByRole("button", { name: "Create free account" }).click();
+  await page.getByLabel("Verification code").fill(await latestCode(page, u.email));
+  await page.getByRole("button", { name: "Verify email" }).click();
+  await expect(page).toHaveURL(/\/dashboard/);
+
+  await page.goto("/settings#security");
+  const toggle = page.getByRole("switch", { name: "App lock" });
+  await expect(toggle).toBeDisabled(); // needs a passkey first
+  await page.getByRole("button", { name: /^Set up / }).click();
+  await expect(page.getByText(/sign-in is on for this device/)).toBeVisible();
+  await expect(toggle).toBeEnabled();
+  await toggle.click();
+  await expect(page.getByText(/App lock is on/)).toBeVisible();
+
+  // Same session: already unlocked, no prompt.
+  await page.goto("/dashboard");
+  await expect(page.getByRole("dialog", { name: "FINANCE OS is locked" })).toHaveCount(0);
+
+  // A new browser session (session-only unlock marker gone) → locked, data hidden.
+  await context.clearCookies({ name: "__fos_unlocked" });
+  await page.goto("/dashboard");
+  const lock = page.getByRole("dialog", { name: "FINANCE OS is locked" });
+  await expect(lock).toBeVisible();
+  await lock.getByRole("button", { name: "Unlock" }).click();
+  await expect(lock).toHaveCount(0);
+  await expect(page.getByText("Available balance")).toBeVisible();
+  // Reloading after unlocking stays unlocked.
+  await page.reload();
+  await expect(page.getByRole("dialog", { name: "FINANCE OS is locked" })).toHaveCount(0);
+});

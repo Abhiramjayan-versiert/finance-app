@@ -5,6 +5,9 @@ import { WorkspaceProvider } from "@/components/providers/workspace";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { BottomNav } from "@/components/layout/bottom-nav";
+import { WebAppLock } from "@/components/auth/app-lock";
+import { LOCK_COOKIE, UNLOCKED_COOKIE } from "@/lib/app-lock";
+import { cookies } from "next/headers";
 import { getCategories, getUnreadCount } from "@/server/queries/finance";
 import { syncWorkspace } from "@/server/sync";
 import { getPublicSettings } from "@/server/queries/platform";
@@ -17,6 +20,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (platform.maintenance_mode && !ws.isAdmin) redirect("/maintenance");
 
   await syncWorkspace(ws);
+  const jar = await cookies();
+  const lockOn = jar.get(LOCK_COOKIE)?.value === "1";
+  const unlocked = jar.get(UNLOCKED_COOKIE)?.value === "1";
   const [cats, unread] = await Promise.all([getCategories(), getUnreadCount().catch(() => 0)]);
 
   return (
@@ -41,6 +47,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </div>
       <BottomNav isAdmin={ws.isAdmin} />
+      <WebAppLock enabled={lockOn} initiallyLocked={lockOn && !unlocked} />
     </WorkspaceProvider>
   );
 }

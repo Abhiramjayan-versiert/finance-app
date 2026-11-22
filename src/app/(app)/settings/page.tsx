@@ -7,6 +7,9 @@ import { PageHeader } from "@/components/shared/page-header";
 import { HELP } from "@/components/shared/page-help";
 import { AppSettings } from "@/components/native/app-settings";
 import { PasskeyManager } from "@/components/auth/passkeys";
+import { WebAppLockSetting } from "@/components/auth/app-lock";
+import { LOCK_COOKIE } from "@/lib/app-lock";
+import { cookies } from "next/headers";
 import { listPasskeys } from "@/server/passkeys";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +32,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const avatar = ws.profile.avatar_url ? fileUrl(ws.profile.avatar_url) : null;
   const passkeys = (await listPasskeys(ws.userId)).map((p) => ({ id: p.id, name: p.name, created_at: p.created_at, last_used_at: p.last_used_at }));
+  const lockOn = (await cookies()).get(LOCK_COOKIE)?.value === "1";
   const links = [["profile", "Profile"], ["preferences", "Preferences"], ["notifications", "Notifications"], ["categories", "Categories"], ["security", "Security"], ["data", "Your data"]];
   return (
     <>
@@ -45,6 +49,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         <Section id="categories" title="Categories" description="Default and custom categories, with subcategories."><CategoryManager /></Section>
         <Section id="security" title="Security" description="FINANCE OS never stores banking passwords, OTPs or card details.">
           <PasskeyManager passkeys={passkeys} />
+          <div className="mt-4"><WebAppLockSetting hasPasskey={passkeys.length > 0} initiallyOn={lockOn} /></div>
           <div className="mt-5 border-t border-border pt-5"><SecurityForms /></div>
           <form action={logoutAction} className="mt-4 border-t border-border pt-4"><Button variant="secondary" size="sm" type="submit">Sign out of this device</Button></form>
         </Section>
