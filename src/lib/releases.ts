@@ -20,7 +20,9 @@ export interface NativeRelease {
 export const NATIVE_RELEASES: Record<NativePlatform, NativeRelease> = {
   android: {
     latest: "1.1.0",
-    url: process.env.NEXT_PUBLIC_ANDROID_STORE_URL || "https://play.google.com/store/apps/details?id=com.versiert.financeos",
+    // Set NEXT_PUBLIC_ANDROID_STORE_URL in Vercel once the app is live on Google Play
+    // (https://play.google.com/store/apps/details?id=com.versiert.financeos).
+    url: process.env.NEXT_PUBLIC_ANDROID_STORE_URL || null,
     notes: "Stay signed in after closing the app, fingerprint lock and in-app update prompts.",
   },
   ios: {
