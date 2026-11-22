@@ -9,6 +9,7 @@ import { isEmailConfigured } from "@/lib/env.server";
 import { sendEmail } from "@/lib/email";
 import { getSessionUser } from "@/lib/auth";
 import { bootstrapWorkspace, getPlatformSettings } from "@/server/data/users";
+import { revokeAllDeviceTokens } from "@/server/device-tokens";
 import { changePasswordSchema, emailOnlySchema, loginSchema, otpSchema, registerSchema, resetPasswordSchema } from "@/lib/validation/schemas";
 import { fail, ok, parseForm, type ActionResult } from "@/lib/security/actions";
 import { clientIp, rateLimit } from "@/lib/security/rate-limit";
@@ -140,9 +141,8 @@ export async function loginAction(_: unknown, fd: FormData): Promise<ActionResul
   redirect(safeNext(fd.get("next")));
 }
 
+/** Signs out THIS device only (other phones/computers stay signed in). */
 export async function logoutAction() {
-  const session = await getSessionUser();
-  if (session) await adminAuth().revokeRefreshTokens(session.uid).catch(() => {});
   await endSession();
   redirect("/login?signedOut=1");
 }
@@ -181,6 +181,7 @@ export async function resetPasswordAction(_: unknown, fd: FormData): Promise<Act
   if (!user) return fail("That code is not valid.");
   await adminAuth().updateUser(user.uid, { password, emailVerified: true });
   await adminAuth().revokeRefreshTokens(user.uid); // sign out other devices
+  await revokeAllDeviceTokens(user.uid);
   const { idToken } = await signInWithPassword(email, password);
   await startSession(idToken);
   redirect("/dashboard?passwordReset=1");
@@ -200,6 +201,7 @@ export async function changePasswordAction(_: unknown, fd: FormData): Promise<Ac
   }
   await adminAuth().updateUser(session.uid, { password: p.data.password });
   await adminAuth().revokeRefreshTokens(session.uid);
+  await revokeAllDeviceTokens(session.uid); // remembered phones must sign in again
   const { idToken } = await signInWithPassword(session.email, p.data.password);
   await startSession(idToken);
   return ok("Password updated. Other devices have been signed out.");

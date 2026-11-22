@@ -6,6 +6,7 @@ import { useTheme } from "next-themes";
 import { Fingerprint, Lock } from "lucide-react";
 import { getPrefs, hapticResult, hapticTap, isNativeApp, nativeDownload, syncReminders, verifyIdentity } from "@/lib/native";
 import { LogoMark } from "@/components/shared/logo";
+import { forgetDeviceAction, rememberDeviceAction, resumeDeviceAction } from "@/server/actions/devices";
 
 /** Areas of the app that hold financial data and sit behind the app lock. */
 const PRIVATE = ["/dashboard", "/transactions", "/income", "/expenses", "/budgets", "/goals", "/savings", "/investments", "/debts", "/net-worth", "/calculators", "/reports", "/achievements", "/notifications", "/settings", "/admin"];
@@ -29,6 +30,7 @@ export function NativeBridge() {
   // "checking" covers the screen until we know whether the lock is on.
   const [lock, setLock] = useState<"checking" | "locked" | "open">(native ? "checking" : "open");
   const [cover, setCover] = useState(false);
+  const [resuming, setResuming] = useState(false);
   const lockEnabled = useRef(false);
   const backgroundedAt = useRef<number | null>(null);
   const prompting = useRef(false);
@@ -127,6 +129,49 @@ export function NativeBridge() {
     };
   }, [native, router]);
 
+  // Stay signed in: remember this device after sign-in, and if the WebView ever
+  // loses its session cookie, restore the session from the device key.
+  useEffect(() => {
+    if (!native) return;
+    let cancelled = false;
+    (async () => {
+      const [{ Preferences }, { Capacitor }] = await Promise.all([import("@capacitor/preferences"), import("@capacitor/core")]);
+      const KEY = "fos.device";
+      const stored = (await Preferences.get({ key: KEY })).value;
+      if (cancelled) return;
+      if (pathname === "/login") {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("signedOut")) {
+          // Deliberate sign-out: forget this device.
+          if (stored) {
+            await Preferences.remove({ key: KEY });
+            forgetDeviceAction(stored).catch(() => {});
+          }
+          return;
+        }
+        if (!stored) return;
+        setResuming(true);
+        const res = await resumeDeviceAction(stored).catch(() => null);
+        if (res) {
+          await Preferences.set({ key: KEY, value: res.token });
+          const next = params.get("next");
+          window.location.replace(next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard");
+        } else {
+          await Preferences.remove({ key: KEY });
+          setResuming(false);
+        }
+        return;
+      }
+      if (isPrivate(pathname) && !stored) {
+        const res = await rememberDeviceAction(Capacitor.getPlatform()).catch(() => null);
+        if (res && !cancelled) await Preferences.set({ key: KEY, value: res.token });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [native, pathname]);
+
   // Status bar follows the theme.
   useEffect(() => {
     if (!native) return;
@@ -187,6 +232,14 @@ export function NativeBridge() {
   }, [native]);
 
   if (!native) return null;
+
+  if (resuming)
+    return (
+      <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-4 bg-background" role="status" aria-live="polite">
+        <LogoMark className="size-14" />
+        <p className="text-base text-muted">Signing you back in…</p>
+      </div>
+    );
 
   const showLock = (lock === "checking" || lock === "locked") && isPrivate(pathname);
   if (!showLock && !cover) return null;

@@ -1,6 +1,7 @@
 "use server";
 
 import { deleteAllPasskeys } from "@/server/passkeys";
+import { revokeAllDeviceTokens } from "@/server/device-tokens";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
@@ -38,6 +39,7 @@ export async function suspendUserAction(_: unknown, fd: FormData): Promise<Actio
     await store.update(userPath(p.data.userId), { status: "suspended", suspended_reason: p.data.reason ?? null });
     await adminAuth().updateUser(p.data.userId, { disabled: true });
     await adminAuth().revokeRefreshTokens(p.data.userId); // invalidates existing sessions
+    await revokeAllDeviceTokens(p.data.userId);
     await audit(actor, "user.suspended", { type: "user", id: p.data.userId }, { reason: p.data.reason ?? null });
     revalidatePath("/admin/users");
     return ok("User suspended");

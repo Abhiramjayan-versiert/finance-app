@@ -32,7 +32,7 @@ export default function DownloadPage() {
           icon={Smartphone}
           title="Android"
           text={`Version ${NATIVE_RELEASES.android.latest}. Fingerprint lock, reminders and offline screen.`}
-          action={NATIVE_RELEASES.android.url ? <Button asChild><a href={NATIVE_RELEASES.android.url}>Get it on Google Play</a></Button> : null}
+          action={NATIVE_RELEASES.android.url ? <Button asChild><a href={NATIVE_RELEASES.android.url}>{NATIVE_RELEASES.android.url.endsWith(".apk") ? "Download for Android" : "Get it on Google Play"}</a></Button> : null}
         />
         <Row
           icon={Apple}

@@ -20,9 +20,11 @@ export interface NativeRelease {
 export const NATIVE_RELEASES: Record<NativePlatform, NativeRelease> = {
   android: {
     latest: "1.1.0",
-    // Set NEXT_PUBLIC_ANDROID_STORE_URL in Vercel once the app is live on Google Play
-    // (https://play.google.com/store/apps/details?id=com.versiert.financeos).
-    url: process.env.NEXT_PUBLIC_ANDROID_STORE_URL || null,
+    // Until the app is on Google Play, updates download the signed APK hosted at
+    // /downloads (served from the second address so the app opens it in the
+    // phone's browser, which can install it). Once live on Play, set
+    // NEXT_PUBLIC_ANDROID_STORE_URL to the Play Store link.
+    url: process.env.NEXT_PUBLIC_ANDROID_STORE_URL || "https://finance-os-omega-bice.vercel.app/downloads/finance-os-android.apk",
     notes: "Stay signed in after closing the app, fingerprint lock and in-app update prompts.",
   },
   ios: {

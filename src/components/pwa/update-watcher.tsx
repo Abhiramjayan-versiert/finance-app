@@ -95,7 +95,8 @@ export function UpdateWatcher() {
     if (prompt.kind === "reload") window.location.reload();
     else window.location.href = prompt.url;
   };
-  const storeName = prompt.kind === "store" ? (prompt.platform === "android" ? "Play Store" : prompt.platform === "ios" ? "App Store" : "download page") : "";
+  const apk = prompt.kind === "store" && prompt.url.endsWith(".apk");
+  const storeName = prompt.kind === "store" ? (apk ? "download" : prompt.platform === "android" ? "Play Store" : prompt.platform === "ios" ? "App Store" : "download page") : "";
 
   return (
     <div
@@ -110,10 +111,12 @@ export function UpdateWatcher() {
         <div className="min-w-0 flex-1">
           <p className="text-base font-semibold">{prompt.kind === "reload" ? "A new version is ready" : `Update FINANCE OS to ${prompt.latest}`}</p>
           <p className="mt-0.5 text-sm text-muted">
-            {prompt.kind === "reload" ? "Tap Update to get the latest improvements. It only takes a second." : prompt.notes ?? `A newer app is available on the ${storeName}.`}
+            {prompt.kind === "reload"
+              ? "Tap Update to get the latest improvements. It only takes a second."
+              : `${prompt.notes ?? "A newer app is available."}${apk ? " Tap Download update, then open the file and tap Install. Your data stays." : ""}`}
           </p>
           <div className="mt-3 flex gap-2">
-            <Button size="sm" onClick={update}>{prompt.kind === "reload" ? "Update now" : `Open ${storeName}`}</Button>
+            <Button size="sm" onClick={update}>{prompt.kind === "reload" ? "Update now" : apk ? "Download update" : `Open ${storeName}`}</Button>
             <Button size="sm" variant="ghost" onClick={later}>Later</Button>
           </div>
         </div>
